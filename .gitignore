@@ -1,0 +1,4 @@
+informe/*.aux
+informe/*.log
+informe/*.pdf
+codigo/*.o
