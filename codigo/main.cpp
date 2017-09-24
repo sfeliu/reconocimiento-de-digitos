@@ -1,11 +1,14 @@
-#include <iostream>
 #include <fstream>
-#include <sstream>
+#include <iostream>
 #include <limits>
-#include <vector>
 #include <map>
+#include <vector>
 
 using namespace std;
+using ocr_clave = char;
+using ocr_elem = vector<int>;
+using ocr_clase = vector<ocr_elem>;
+using ocr_bd = map<ocr_clave, ocr_clase>;
 
 int main() {
     
@@ -17,14 +20,13 @@ int main() {
     datos_entrenamiento.ignore(numeric_limits<streamsize>::max(), '\n'); // descarto cabecera
     
     // Leo los datos
-    map<char, vector<vector<int>>> bd_entrenamiento;
+    ocr_bd bd_entrenamiento;
     while (!datos_entrenamiento.eof()) {
         // Obtengo la clave de la clase de la imagen
-        char clave;
+        ocr_clave clave;
         datos_entrenamiento >> clave;
         // Agrego un vector vacio a la clase
-        auto clase = bd_entrenamiento[clave];
-        clase.push_back(vector<int>());
+        bd_entrenamiento[clave].push_back(ocr_elem());
         // Obtengo las coordenadas del vector
         while (datos_entrenamiento.peek() == ',') {
             // Ignoro la coma
@@ -33,7 +35,7 @@ int main() {
             int val;
             datos_entrenamiento >> val;
             // Agrego el valor al vector correspondiente
-            clase.back().push_back(val);
+            bd_entrenamiento[clave].back().push_back(val);
         }
         datos_entrenamiento.ignore(numeric_limits<streamsize>::max(), '\n'); // descarto el salto de linea
         datos_entrenamiento.peek(); // esto levanta el flag de EOF si se termino el archivo
