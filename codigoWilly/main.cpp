@@ -175,34 +175,27 @@ vector<double> levantarDatos(vector<vector<vector<double> > > & res){
   ifstream training_set("data/train2.csv");
   if(!training_set.is_open()) throw runtime_error("No se pudo leer el archivo");
   training_set.ignore(numeric_limits<streamsize>::max(),'\n');
-  //descarto los que no son numeros
   vector<double> elemXClase(10);
   while(!training_set.eof()){
     int clase_i;
     training_set >> clase_i;
     elemXClase[clase_i] += 1;
     vector<double> dato;
-    //obtengo las coordenadas del vector
     while(training_set.peek() == ','){
-      //ignoro la coma
       training_set.ignore();
-      //leo el pixel
       double pix;
       training_set >> pix;
-      //agrego el valor al vector
       dato.push_back(pix);
     }
     res[clase_i].push_back(dato);
     training_set.ignore(numeric_limits<streamsize>::max(),'\n');
-    //descarto salto de linea
     training_set.peek();
-    //levanta el flag de EOF si se termino el archivo
   }
   return elemXClase;
 }
 
-vector<pair<double,Matriz> > entrenar(vector<pair<double,Matriz> > res,Matriz& A,Matriz& x,int cant_vectores, int cant_iterariones){
-  for(int i = 0; i < cant_vectores; i++){
+void entrenar(vector<pair<double,Matriz> >& res,Matriz& A,Matriz& x, int cant_vectores, int cant_iterariones){
+  for(int i = 0; i < cant_iterariones; i++){
     x.generarRandom();
     pair<double, Matriz> salida;
     salida = A.metodoDeLasPotencias(cant_iterariones,x);
@@ -210,37 +203,36 @@ vector<pair<double,Matriz> > entrenar(vector<pair<double,Matriz> > res,Matriz& A
     cout << salida.first << endl;
     res.push_back(salida);
   }
-  return res;
 }
 
-generarParticiones(archivo& datos, archivo& entrenamiento, archivo& validacion, int cant_particiones){
-  int rand= 21%cant_particiones;
+void generarParticiones(vector<archivo>& particiones , archivo& datos, int cant_particiones){
+  archivo part_i;
   for(int clases_i = 0; clases_i < datos.size();clases_i++){
+    int cant_elemXPart = datos[clases_i].size()/(cant_particiones+1);
     for(int elemento_i = 0; elemento_i < datos[clases_i].size();elemento_i++){
-      for(int coordenada_i = 0; coordenada_i < datos[clases_i][elemento_i].size(); coordenada_i++){
-        if(clases_i/cant_particiones != rand){
-          entrenamiento[clases_i].push_back(datos[clases_i][elemento_i]);
-        }else{
-          validacion[clases_i].push_back(datos[clases_i][elemento_i]);
-        }
-      }
+      part_i[clases_i].push_back(datos[clases_i][elemento_i/(cant_particiones+1)]);
     }
+    particiones.push_back(part_i);
   }
+}
+
+int unirDatos(vector<archivo> k_particiones, int iteracion){
+  return 0;
 }
 
 int main(){
   vector<pair<double, Matriz> > cambioBase;
   int cant_DatosValidacion;
-  string entrenar;
+  string _entrenar;
   cout << "Desea entrenar: e (y presione Enter)"<<endl;
-  cin >> entrenar;
+  cin >> _entrenar;
   string validar;
   cout << "Desea validar: v (y presione Enter)"<<endl;
   cin >> validar;
   int cant_particiones;
   cout << "Ingrese la cantidad de particiones que sea hacer del dataset"<<endl;
   cin >> cant_particiones;
-  if(entrenar == "e"){
+  if(_entrenar == "e"){
     int cant_vectores;
     int max_iteraciones;
     cout <<"Ingrese cantidad de dimensiones para considerar la descomposicion: "<<endl;
@@ -255,11 +247,13 @@ int main(){
       cout << datos[i].size()<<endl;
       cout << elemXClase[i] << " "<< i <<endl;
     }
-    int cant_DatosEntrenamiento;
+    vector<archivo> k_particiones;
+    generarParticiones(k_particiones ,datos, cant_particiones);
+    int iteracion = 0;
+    int cant_DatosEntrenamiento = unirDatos(k_particiones,iteracion);
     archivo datosEntrenamiento;
     archivo datosValidacion;
     Matriz E(cant_DatosEntrenamiento,784,false);
-    generarParticiones(datos, datosEntrenamiento, datosValidacion, cant_particiones);
     cant_DatosValidacion = cant_Datos-cant_DatosEntrenamiento;
     E.cargarDatos(datosEntrenamiento);
     cout << "Datos cargados"<< endl;
@@ -269,20 +263,12 @@ int main(){
     cout << "Matriz de covarianza"<< endl;
     Matriz x(cant_Datos,1,false);
     cout << "Iniciando entrenamiento"<<endl;
-    cambioBase = entrenar(cambioBase,E,x,cant_vectores,max_iteraciones);
+    entrenar(cambioBase,E,x,cant_vectores,max_iteraciones);
     cout << "Generando salida"<< endl;
     generarCB(cambioBase);
     cout << "Fin entrenamiento"<< endl;
       }
   else{
-    cout << "Opcion invalida"<< endl;
-  }
-  if(validar == "v"){
-    Matriz V(cant_DatosValidacion,784,false);
-    //cargar();
-    //knn(cambioBase,datos);
-    cout << "Fin validacion"<< endl;
-  }else{
     cout << "Opcion invalida"<< endl;
   }
   return 0;
