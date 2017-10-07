@@ -38,10 +38,12 @@ class OCR {
         
         // Estructura de representacion
         base_de_datos_t _bd;
-        datos_t _datos;
+        Matriz _datos;
+        Matriz _matriz_cov;
         
         // Funciones auxiliares
         void _verificar_dimension(const elem_t &e) const;
+        void _obtener_matriz_cov();
 };
 
 
