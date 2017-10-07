@@ -4,7 +4,7 @@ using namespace std;
 
 // Constructores
 
-OCR::OCR(base_de_datos_t &bd, datos_t &datos) : _bd(), _datos(), _matriz_cov() {
+OCR::OCR(base_de_datos_t &bd, datos_t &datos) : _bd(), _datos(), _matriz_cov(), alpha(0) {
     _bd.swap(bd);
     _datos.swap(datos);
     _obtener_matriz_cov();
@@ -109,7 +109,7 @@ unsigned int OCR::filas(const datos_t &d) const {
 }
 
 unsigned int OCR::filas(const elem_t &e) const {
-    return 1;
+    return e.size();
 }
 
 unsigned int OCR::columnas(const datos_t &d) const {
@@ -117,7 +117,7 @@ unsigned int OCR::columnas(const datos_t &d) const {
 }
 
 unsigned int OCR::columnas(const elem_t &e) const {
-    return e.size();
+    return 1;
 }
 
 double OCR::distancia(const int i, const elem_t &e) const {
@@ -129,6 +129,23 @@ double OCR::distancia(const int i, const elem_t &e) const {
         acum += pow(_datos[i][j] - e[j], 2);
     }
     return sqrt(acum);
+}
+
+double OCR::prod_interno(const elem_t &x, const elem_t &y) const {
+    int dim = filas(x);
+    double prod = 0;
+    for (int k = 0; k < dim; ++k) prod += x[k] * y[k];
+    return prod;
+}
+
+double OCR::norma2(const elem_t &e) const {
+    return sqrt(prod_interno(e, e));
+}
+
+void OCR::normalizar(elem_t &e) const {
+    int dim = filas(e);
+    double norma = norma2(e);
+    for (int k = 0; k < dim; ++k) e[k] /= norma;
 }
 
 
@@ -166,4 +183,62 @@ void OCR::_obtener_matriz_cov() {
         }
     }
     
+}
+
+pair<double, OCR::elem_t> OCR::_metodo_de_potencia(const datos_t &B, const elem_t &x) const {
+    // Obtengo el autovector
+    elem_t v = x;
+    for (int k = 0; k < 300; ++k) {
+        _aplicar_cov(v);
+        normalizar(v);
+    }
+    
+    // Obtengo el autovalor
+    elem_t Bv = v;
+    _aplicar_cov(Bv);
+    double a = prod_interno(v, Bv) / prod_interno(v, v);
+    
+    return make_pair(a, v);
+}
+
+void OCR::_aplicar_cov(elem_t &x) const {
+    int dim = filas(_matriz_cov);
+    elem_t v(dim, 0);
+    for (int i = 0; i < dim; ++i) {
+        for (int j = 0; j < dim; ++j) {
+            v[i] += _matriz_cov[i][j] * x[j];
+        }
+    }
+    x.swap(v);
+}
+
+void OCR::_deflacion(datos_t &A, const double a, const elem_t &e) const {
+    int dim = filas(A);
+    for (int i = 0; i < dim; ++i) {
+        for (int j = i; j < dim; ++j) {
+            double acum = 0;
+            for (int k = 0; k < dim; ++k) acum += e[k] * e[k];
+            A[j][i] = A[i][j] -= acum * a;
+        }
+    }
+}
+
+void OCR::_obtener_cambio_de_base() {
+    int dim = filas(_matriz_cov);
+    datos_t CB(dim, elem_t(alpha));
+    datos_t B = _matriz_cov;
+    for (unsigned int k = 0; k < alpha; ++k) {
+        // Obtengo autovalor dominante y su autovector asociado
+        pair<double, elem_t> p = _metodo_de_potencia(B, _elem_random(dim));
+        // Pongo al vector como columna en CB
+        for (int i = 0; i < dim; ++i) CB[i][k] = p.second[i];
+        // Aplico deflacion
+        _deflacion(B, p.first, p.second);
+    }
+}
+
+OCR::elem_t OCR::_elem_random(const unsigned int n) const {
+    elem_t e(n);
+    for (unsigned int i = 0; i < n; ++i) e[i] = rand();
+    return e;
 }

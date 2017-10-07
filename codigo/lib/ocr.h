@@ -36,6 +36,9 @@ class OCR {
         unsigned int columnas(const datos_t &d) const;
         unsigned int columnas(const elem_t &e) const;
         double distancia(const int i, const elem_t &e) const;
+        double prod_interno(const elem_t &x, const elem_t &y) const;
+        double norma2(const elem_t &e) const;
+        void normalizar(elem_t &e) const;
         
         
     private:
@@ -44,10 +47,16 @@ class OCR {
         base_de_datos_t _bd;
         datos_t _datos;
         datos_t _matriz_cov;
+        unsigned int alpha;
         
         // Funciones auxiliares
         void _verificar_dimension(const elem_t &e) const;
         void _obtener_matriz_cov();
+        pair<double, elem_t> _metodo_de_potencia(const datos_t &B, const elem_t &x) const;
+        void _aplicar_cov(elem_t &x) const;
+        void _deflacion(datos_t &A, const double a, const elem_t &p) const;
+        void _obtener_cambio_de_base();
+        elem_t _elem_random(const unsigned int n) const;
 };
 
 
