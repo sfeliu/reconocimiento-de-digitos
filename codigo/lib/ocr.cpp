@@ -25,7 +25,7 @@ const OCR::datos_t& OCR::datos() const {
 // Métodos principales
 
 OCR::clave_t OCR::kNN(const unsigned int k, const elem_t &e) const {
-    
+
     if (k <= 0) throw runtime_error("k debe ser mayor a 0.");
     _verificar_dimension(e);
     
@@ -157,29 +157,37 @@ void OCR::_verificar_dimension(const elem_t &e) const {
 }
 
 void OCR::_obtener_matriz_cov() {
-    int dim = columnas(_datos);
-    int n = filas(_datos);
-    
+    int c = columnas(_datos);
+    int f = filas(_datos);
+
     // Obtengo medias
-    vector<double> medias(dim);
-    for (int j = 0; j < dim; ++j) {
+    vector<double> medias(c);
+    for (int j = 0; j < c; ++j) {
         double suma = 0;
-        for (int i = 0; i < n; ++i) {
+        for (int i = 0; i < f; ++i) {
             suma += _datos[i][j];
         }
-        medias[j] = suma / n;
+        medias[j] = suma / f;
     }
-    
+
+    // Obtengo matriz traspuesta
+    datos_t T(c, elem_t(f));
+    for (int i = 0; i < c; ++i) {
+        for (int j = 0; j < f; ++j) {
+            T[i][j] = _datos[j][i] - medias[i];
+        }
+    }
+
     // Obtengo la matriz de covarianza
     _matriz_cov = datos_t(columnas(_datos), elem_t(columnas(_datos), 0));
-    for (int i = 0; i < dim; ++i) {
-        for (int j = i; j < dim; ++j) {
-            
-            for (int k = 0; k < n; ++k) {
-                _matriz_cov[i][j] += (_datos[k][i] - medias[i]) * (_datos[k][j] - medias[j]);
+    for (int i = 0; i < c; ++i) {
+        for (int j = 0; j <= i; ++j) {
+
+            double suma = 0;
+            for (int k = 0; k < f; ++k) {
+                suma += T[i][k] * T[j][k];
             }
-            _matriz_cov[j][i] = _matriz_cov[i][j] /= n-1;
-            
+            _matriz_cov[j][i] = _matriz_cov[i][j] = suma /= f-1;
         }
     }
     
@@ -240,5 +248,6 @@ void OCR::_obtener_cambio_de_base() {
 OCR::elem_t OCR::_elem_random(const unsigned int n) const {
     elem_t e(n);
     for (unsigned int i = 0; i < n; ++i) e[i] = rand();
+    normalizar(e);
     return e;
 }
