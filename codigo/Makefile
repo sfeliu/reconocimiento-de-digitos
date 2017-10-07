@@ -3,7 +3,7 @@ CFLAGS= -Wall -O3
 
 all: main experimentos
 	
-main: main.cpp
+main: main.cpp lib/matriz.h lib/matriz.cpp lib/fputils.h lib/fputils.cpp lib/ocr.h lib/ocr.cpp
 	$(CC) $(CFLAGS) $^ -o $@
 	
 experimentos: experimentos.cpp
