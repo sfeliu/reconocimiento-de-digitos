@@ -4,11 +4,6 @@ using namespace std;
 
 // Constructores
 
-OCR::OCR(base_de_datos_t &bd, vector<vector<double>> &datos) : _bd(), _datos(datos), _matriz_cov() {
-    _bd.swap(bd);
-    _obtener_matriz_cov();
-}
-
 OCR::OCR(base_de_datos_t &bd, datos_t &datos) : _bd(), _datos(), _matriz_cov() {
     _bd.swap(bd);
     _datos.swap(datos);
@@ -109,13 +104,29 @@ OCR::clave_t OCR::kNN(const unsigned int k, const elem_t &e) const {
 
 
 // Metodos auxiliares
+unsigned int OCR::filas(const datos_t &d) const {
+    return d.size();
+}
+
+unsigned int OCR::filas(const elem_t &e) const {
+    return 1;
+}
+
+unsigned int OCR::columnas(const datos_t &d) const {
+    return d.size() == 0 ? 0 : d[0].size();
+}
+
+unsigned int OCR::columnas(const elem_t &e) const {
+    return e.size();
+}
 
 double OCR::distancia(const int i, const elem_t &e) const {
     _verificar_dimension(e);
     
     double acum = 0;
-    for (int j = 0; j < e.columnas(); ++j) {
-        acum += pow(_datos(i,j) - e(0,j), 2);
+    int dim = columnas(e);
+    for (int j = 0; j < dim; ++j) {
+        acum += pow(_datos[i][j] - e[j], 2);
     }
     return sqrt(acum);
 }
@@ -124,32 +135,33 @@ double OCR::distancia(const int i, const elem_t &e) const {
 // Funciones auxiliares
 
 void OCR::_verificar_dimension(const elem_t &e) const {
-    if (e.columnas() != _datos.columnas())
+    if (columnas(e) != columnas(_datos))
         throw runtime_error("La dimension del elemento no coincide con la de los datos.");
 }
 
 void OCR::_obtener_matriz_cov() {
-    printf("obteniendo medias\n");
+    int dim = columnas(_datos);
+    int n = filas(_datos);
+    
     // Obtengo medias
-    vector<double> medias(_datos.columnas());
-    for (int j = 0; j < _datos.columnas(); ++j) {
+    vector<double> medias(dim);
+    for (int j = 0; j < dim; ++j) {
         double suma = 0;
-        for (int i = 0; i < _datos.filas(); ++i) {
-            suma += _datos(i,j);
+        for (int i = 0; i < n; ++i) {
+            suma += _datos[i][j];
         }
-        medias[j] = suma / _datos.filas();
+        medias[j] = suma / n;
     }
     
-    printf("obteniendo matriz\n");
     // Obtengo la matriz de covarianza
-    _matriz_cov = Matriz(_datos.columnas());
-    for (int i = 0; i < _matriz_cov.filas(); ++i) {
-        for (int j = i; j < _matriz_cov.filas(); ++j) {
+    _matriz_cov = datos_t(columnas(_datos), elem_t(columnas(_datos), 0));
+    for (int i = 0; i < dim; ++i) {
+        for (int j = i; j < dim; ++j) {
             
-            for (int k = 0; k < _datos.filas(); ++k) {
-                _matriz_cov(i,j) = (_datos(k,i) - medias[i]) * (_datos(k,j) - medias[j]) / (_datos.filas()-1);
+            for (int k = 0; k < n; ++k) {
+                _matriz_cov[i][j] += (_datos[k][i] - medias[i]) * (_datos[k][j] - medias[j]);
             }
-            _matriz_cov(j,i) = _matriz_cov(i,j);
+            _matriz_cov[j][i] = _matriz_cov[i][j] /= n-1;
             
         }
     }
