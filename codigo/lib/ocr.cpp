@@ -1,59 +1,152 @@
+#include <iostream>
 #include "ocr.h"
 
-using namespace std;
+const unsigned int KNN_DEFAULT_K = 10;
 
 // Constructores
 
-OCR::OCR(base_de_datos_t &bd, datos_t &datos) : _bd(), _datos(), _matriz_cov(), alpha(0) {
-    _bd.swap(bd);
-    _datos.swap(datos);
-    _obtener_matriz_cov();
-}
-        
-        
-// Metodos de acceso a informacion
-
-const OCR::base_de_datos_t& OCR::base_de_datos() const {
-    return _bd;
-}
-
-const OCR::datos_t& OCR::datos() const {
-    return _datos;
-}
-
-
-// Métodos principales
-
-OCR::clave_t OCR::kNN(const unsigned int k, const elem_t &e) const {
-
-    if (k <= 0) throw runtime_error("k debe ser mayor a 0.");
-    _verificar_dimension(e);
+OCR::OCR(base_de_datos_t &bd, datos_t &datos, unsigned int alpha, unsigned int k) : _bd(bd), _datos(datos), _alpha(alpha), _k(k) {
     
+    unsigned int fils = datos.size();
+    if (fils == 0) throw runtime_error("No hay datos.");
+    unsigned int cols = datos[0].size();
+    if (cols == 0) throw runtime_error("No hay datos.");
+    
+    // Obtengo la cantidad total de datos
+    _n = fils;
+    
+    // Obtengo cantidad de vecinos para kNN
+    if (_k == 0) _k = _n < KNN_DEFAULT_K ? _n : KNN_DEFAULT_K;
+    
+    // Obtengo la media de los datos
+    _media = Matriz(cols, 1);
+    for (unsigned int j = 0; j < cols; ++j) {
+        double suma = 0;
+        for (unsigned int i = 0; i < fils; ++i) suma += datos[i][j];
+        _media(j) = suma / fils;
+    }
+    
+    // Aplico PCA
+    _aplicar_PCA();
+}
+
+
+// Metodos
+
+OCR::clave_t OCR::reconocer(const datos_t &datos) const {
+    datos_t d = datos;
+    Matriz X = _normalizar_datos(d);
+    cout << "Aplicando kNN..." << endl;
+    return _kNN(10, _alpha == 0 ? X : _cb * X);
+}
+
+void OCR::cant_componentes_PCA(const unsigned int alpha) {
+    _alpha = alpha;
+    // Si la cantidad de componentes es mayor a la que ya tengo reaplico PCA
+    if (_alpha > _muestra.filas()) _aplicar_PCA();
+}
+
+
+// Funciones auxiliares
+
+void OCR::_aplicar_PCA() {
+    cout << "Aplicando PCA..." << endl;
+    
+    // Obtengo matriz de datos normalizados (los datos por columna)
+    cout << "  * Normalizando datos..." << endl;
+    _muestra = _normalizar_datos(_datos);
+    
+    if (_alpha == 0) return;
+    
+    // Obtengo matriz de covarianza
+    if (_cov.vacia()) {
+        cout << "  * Computando matriz de covarianza..." << endl;
+        _cov = _muestra.producto_por_traspuesta();
+    }
+    
+    // Obtengo matriz de cambio de base
+    cout << "  * Obteniendo matriz de cambio de base..." << endl;
+    Matriz B = _cov;
+    unsigned int cols = B.filas();
+    _cb = Matriz(_alpha, cols);
+    for (unsigned int k = 0; k < _alpha; ++k) {
+        Matriz v = Matriz(); double a;
+        while (!_metodo_de_la_potencia(B, _vector_random(cols), v, a)) {}
+        for (unsigned int i = 0; i < cols; ++i) _cb(k,i) = v(i);
+        _aplicar_deflacion(B, v, a);
+    }
+
+    // Aplico el cambio de base a los datos
+    cout << "  * Aplicando cambio de base..." << endl;
+    _muestra = _cb * _muestra;
+}
+
+Matriz OCR::_normalizar_datos(datos_t &datos) const {
+    unsigned int fils = datos.size();
+    unsigned int cols = datos[0].size();
+    Matriz A = Matriz(cols, fils);
+    double m = sqrt(_n - 1);
+    for (unsigned int i = 0; i < cols; ++i) {
+        for (unsigned int j = 0; j < fils; ++j)
+            A(i,j) = (datos[j][i] - _media(i)) / m;
+    }
+    return A;
+}
+
+bool OCR::_metodo_de_la_potencia(const Matriz& B, const Matriz &x0, Matriz& v, double &a) const {
+    // Obtengo el autovector
+    Matriz u = x0.normalizado();
+    v = (B * x0).normalizado();
+    // Si x0 es autovector falla el metodo porque no puedo asegurar que su autovalor sea el dominante
+    if (fputils::eq(v.distancia(u), 0)) return false;
+    do {
+        u = v;
+        v = (B * v).normalizado();
+    } while (v.distancia(u) > 10e-10); // Itero hasta que el cambio sea poco
+    
+    // Obtengo el autovalor
+    a = v.producto_interno(B * v) / v.producto_interno(v);
+    
+    return true;
+}
+
+void OCR::_aplicar_deflacion(Matriz &B, const Matriz &v, const double a) const {
+    B -= v.producto_por_traspuesta() * a;
+}
+
+Matriz OCR::_vector_random(const unsigned int f) const {
+    Matriz v(f, 1);
+    for (unsigned int i = 0; i < f; ++i) v(i) = rand();
+    return v;
+}
+
+OCR::clave_t OCR::_kNN(const unsigned int k, const Matriz &v) const {
     // Creo una cola de prioridad de tuplas <clave, distancia> en la cual la mayor prioridad
     // corresponde a la tupla de mayor distancia.
     // Cada tupla corresponde a un elemento de la base de datos de entrenamiento, donde clave
-    // es la clave de su clase y distancia es su distancia con respecto a e.
+    // es la clave de su clase y distancia es su distancia con respecto a v.
     // En la cola se iran insertando las tuplas con menor distancia, guardando a lo sumo k
     // tuplas con distinta distancia.
     using tupla = pair<clave_t, double>;
-    struct menor {
+    struct cmp {
         bool operator()(const tupla &a, const tupla &b) const { return fputils::lt(a.second, b.second); }
     };
+    cmp menor;
     vector<tupla> cola;
     for (base_de_datos_t::const_iterator it = _bd.cbegin(); it != _bd.cend(); ++it) {
         for (unsigned int i = 0; i < it->second.size(); ++i) {
-            tupla t = make_pair(it->first, distancia(it->second[i], e));
+            tupla t = make_pair(it->first, _distancia(it->second[i], v));
             // Guardo t en la cola si hay menos de k elementos o si hay al menos k elementos
             // y la distancia de t es menor o igual que la del elemento con mayor distancia
-            if (cola.size() < k || !menor()(cola[0], t)) {
+            if (cola.size() < k || !menor(cola[0], t)) {
                 // Si la distancia de t es menor o igual que la del elemento con mayor distancia
                 // saco al elemento con mayor distancia de la cola antes de insertar a t
                 if (cola.size() >= k) {
-                    pop_heap(cola.begin(), cola.end(), menor());
+                    pop_heap(cola.begin(), cola.end(), menor);
                     cola.pop_back();
                 }
                 cola.push_back(t);
-                push_heap(cola.begin(), cola.end(), menor());
+                push_heap(cola.begin(), cola.end(), menor);
             }
         }
     }
@@ -102,152 +195,9 @@ OCR::clave_t OCR::kNN(const unsigned int k, const elem_t &e) const {
     return clave_con_vecinos_mas_cercanos->first;
 }
 
-
-// Metodos auxiliares
-unsigned int OCR::filas(const datos_t &d) const {
-    return d.size();
-}
-
-unsigned int OCR::filas(const elem_t &e) const {
-    return e.size();
-}
-
-unsigned int OCR::columnas(const datos_t &d) const {
-    return d.size() == 0 ? 0 : d[0].size();
-}
-
-unsigned int OCR::columnas(const elem_t &e) const {
-    return 1;
-}
-
-double OCR::distancia(const int i, const elem_t &e) const {
-    _verificar_dimension(e);
-    
-    double acum = 0;
-    int dim = columnas(e);
-    for (int j = 0; j < dim; ++j) {
-        acum += pow(_datos[i][j] - e[j], 2);
-    }
-    return sqrt(acum);
-}
-
-double OCR::prod_interno(const elem_t &x, const elem_t &y) const {
-    int dim = filas(x);
-    double prod = 0;
-    for (int k = 0; k < dim; ++k) prod += x[k] * y[k];
-    return prod;
-}
-
-double OCR::norma2(const elem_t &e) const {
-    return sqrt(prod_interno(e, e));
-}
-
-void OCR::normalizar(elem_t &e) const {
-    int dim = filas(e);
-    double norma = norma2(e);
-    for (int k = 0; k < dim; ++k) e[k] /= norma;
-}
-
-
-// Funciones auxiliares
-
-void OCR::_verificar_dimension(const elem_t &e) const {
-    if (columnas(e) != columnas(_datos))
-        throw runtime_error("La dimension del elemento no coincide con la de los datos.");
-}
-
-void OCR::_obtener_matriz_cov() {
-    int c = columnas(_datos);
-    int f = filas(_datos);
-
-    // Obtengo medias
-    vector<double> medias(c);
-    for (int j = 0; j < c; ++j) {
-        double suma = 0;
-        for (int i = 0; i < f; ++i) {
-            suma += _datos[i][j];
-        }
-        medias[j] = suma / f;
-    }
-
-    // Obtengo matriz traspuesta
-    datos_t T(c, elem_t(f));
-    for (int i = 0; i < c; ++i) {
-        for (int j = 0; j < f; ++j) {
-            T[i][j] = _datos[j][i] - medias[i];
-        }
-    }
-
-    // Obtengo la matriz de covarianza
-    _matriz_cov = datos_t(columnas(_datos), elem_t(columnas(_datos), 0));
-    for (int i = 0; i < c; ++i) {
-        for (int j = 0; j <= i; ++j) {
-
-            double suma = 0;
-            for (int k = 0; k < f; ++k) {
-                suma += T[i][k] * T[j][k];
-            }
-            _matriz_cov[j][i] = _matriz_cov[i][j] = suma /= f-1;
-        }
-    }
-    
-}
-
-pair<double, OCR::elem_t> OCR::_metodo_de_potencia(const datos_t &B, const elem_t &x) const {
-    // Obtengo el autovector
-    elem_t v = x;
-    for (int k = 0; k < 300; ++k) {
-        _aplicar_cov(v);
-        normalizar(v);
-    }
-    
-    // Obtengo el autovalor
-    elem_t Bv = v;
-    _aplicar_cov(Bv);
-    double a = prod_interno(v, Bv) / prod_interno(v, v);
-    
-    return make_pair(a, v);
-}
-
-void OCR::_aplicar_cov(elem_t &x) const {
-    int dim = filas(_matriz_cov);
-    elem_t v(dim, 0);
-    for (int i = 0; i < dim; ++i) {
-        for (int j = 0; j < dim; ++j) {
-            v[i] += _matriz_cov[i][j] * x[j];
-        }
-    }
-    x.swap(v);
-}
-
-void OCR::_deflacion(datos_t &A, const double a, const elem_t &e) const {
-    int dim = filas(A);
-    for (int i = 0; i < dim; ++i) {
-        for (int j = i; j < dim; ++j) {
-            double acum = 0;
-            for (int k = 0; k < dim; ++k) acum += e[k] * e[k];
-            A[j][i] = A[i][j] -= acum * a;
-        }
-    }
-}
-
-void OCR::_obtener_cambio_de_base() {
-    int dim = filas(_matriz_cov);
-    datos_t CB(dim, elem_t(alpha));
-    datos_t B = _matriz_cov;
-    for (unsigned int k = 0; k < alpha; ++k) {
-        // Obtengo autovalor dominante y su autovector asociado
-        pair<double, elem_t> p = _metodo_de_potencia(B, _elem_random(dim));
-        // Pongo al vector como columna en CB
-        for (int i = 0; i < dim; ++i) CB[i][k] = p.second[i];
-        // Aplico deflacion
-        _deflacion(B, p.first, p.second);
-    }
-}
-
-OCR::elem_t OCR::_elem_random(const unsigned int n) const {
-    elem_t e(n);
-    for (unsigned int i = 0; i < n; ++i) e[i] = rand();
-    normalizar(e);
-    return e;
+double OCR::_distancia(const unsigned int j, const Matriz &v) const {
+    unsigned int n = _alpha == 0 ? v.filas() : _alpha;
+    double suma = 0;
+    for (unsigned int i = 0; i < n; ++i) suma += pow(_muestra(i,j) - v(i), 2);
+    return sqrt(suma);
 }

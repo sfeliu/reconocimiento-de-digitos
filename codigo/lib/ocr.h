@@ -3,10 +3,10 @@
 
 #include <algorithm>
 #include <map>
-#include <math.h>
 #include <set>
 #include <vector>
-#include "fputils.h"
+#include "math.h"
+#include "matriz.h"
 
 using namespace std;
 
@@ -17,47 +17,42 @@ class OCR {
         using clave_t = char;
         using indice_t = unsigned int;
         using base_de_datos_t = map<clave_t, vector<indice_t>>;
-        using elem_t = vector<double>;
-        using datos_t = vector<elem_t>;
+        using dato_t = vector<unsigned char>;
+        using datos_t = vector<dato_t>;
         
         // Constructores
-        OCR(base_de_datos_t &bd, datos_t &datos);
+        OCR(base_de_datos_t &bd, datos_t &datos, unsigned int alpha = 0, unsigned int k = 0);
         
-        // Metodos de acceso a informacion
-        const base_de_datos_t& base_de_datos() const;
-        const datos_t& datos() const;
-        
-        // Metodos principales
-        clave_t kNN(const unsigned int k, const elem_t &e) const;
-        
-        // Metodos auxiliares
-        unsigned int filas(const datos_t &d) const;
-        unsigned int filas(const elem_t &e) const;
-        unsigned int columnas(const datos_t &d) const;
-        unsigned int columnas(const elem_t &e) const;
-        double distancia(const int i, const elem_t &e) const;
-        double prod_interno(const elem_t &x, const elem_t &y) const;
-        double norma2(const elem_t &e) const;
-        void normalizar(elem_t &e) const;
-        
+        // Metodos
+        clave_t reconocer(const datos_t &datos) const;
+        inline clave_t reconocer(const dato_t &dato) const { return reconocer(datos_t(1, dato)); };
+        void cant_componentes_PCA(const unsigned int alpha);
+        inline unsigned int cant_componentes_PCA() const { return _alpha; };
+        inline void cant_vecinos_kNN(const unsigned int k) { _k = k; };
+        inline unsigned int cant_vecinos_kNN() const { return _k; };
         
     private:
         
         // Estructura de representacion
         base_de_datos_t _bd;
         datos_t _datos;
-        datos_t _matriz_cov;
-        unsigned int alpha;
+        unsigned int _alpha;
+        unsigned int _k;
+        unsigned int _n;
+        Matriz _media;
+        Matriz _muestra;
+        Matriz _cov;
+        Matriz _cb;
         
         // Funciones auxiliares
-        void _verificar_dimension(const elem_t &e) const;
-        void _obtener_matriz_cov();
-        pair<double, elem_t> _metodo_de_potencia(const datos_t &B, const elem_t &x) const;
-        void _aplicar_cov(elem_t &x) const;
-        void _deflacion(datos_t &A, const double a, const elem_t &p) const;
-        void _obtener_cambio_de_base();
-        elem_t _elem_random(const unsigned int n) const;
+        void _aplicar_PCA();
+        Matriz _normalizar_datos(datos_t &datos) const;
+        bool _metodo_de_la_potencia(const Matriz &B, const Matriz &x0, Matriz& v, double &a) const;
+        void _aplicar_deflacion(Matriz &B, const Matriz &v, const double a) const;
+        Matriz _vector_random(const unsigned int f) const;
+        clave_t _kNN(const unsigned int k, const Matriz &v) const;
+        double _distancia(const unsigned int j, const Matriz &v) const;
+        
 };
-
 
 #endif //__OCR_H__
