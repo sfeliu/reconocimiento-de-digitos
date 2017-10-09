@@ -7,16 +7,16 @@
 using namespace std;
 
 int main() {
-    
+
     // Lectura de base de datos de entrenamiento
-    
+
     //cout << "Leyendo base de datos de entrenamiento..." << endl;
-    
+
     // Abro el archivo de datos de entrenamiento
     ifstream archivo_entrenamiento("data/train.csv");
     if (!archivo_entrenamiento.is_open()) throw runtime_error("No se pudo leer el archivo");
     archivo_entrenamiento.ignore(numeric_limits<streamsize>::max(), '\n'); // descarto cabecera
-    
+
     // Leo los datos
     OCR::base_de_datos_t bd;
     OCR::datos_t datos; // matriz de datos
@@ -41,14 +41,14 @@ int main() {
         archivo_entrenamiento.ignore(numeric_limits<streamsize>::max(), '\n'); // descarto el salto de linea
         archivo_entrenamiento.peek(); // esto levanta el flag de EOF si se termino el archivo
     }
-    
+
     OCR ocr(bd, datos, 50, 15);
     /*
     // Abro el archivo de datos de testing
     ifstream archivo_test("data/test.csv");
     if (!archivo_test.is_open()) throw runtime_error("No se pudo leer el archivo");
     archivo_test.ignore(numeric_limits<streamsize>::max(), '\n'); // descarto cabecera
-    
+
     // Leo los datos
     OCR::datos_t datos_test; // matriz de datos
     while (!archivo_test.eof()) {
@@ -71,12 +71,12 @@ int main() {
         archivo_test.ignore(numeric_limits<streamsize>::max(), '\n'); // descarto el salto de linea
         archivo_test.peek(); // esto levanta el flag de EOF si se termino el archivo
     }
-    
+
     unsigned int n = datos_test.size();
     printf("ImageId,Label\n");
     for (unsigned int i = 0; i < n; ++i) {
         printf("%d,%c\n", i+1, ocr.reconocer(datos[i]));
-    }
-    
+    }*/
+
     return 0;
 }
