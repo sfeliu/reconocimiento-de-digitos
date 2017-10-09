@@ -119,8 +119,8 @@ Matriz Matriz::producto_por_traspuesta() const {
 // Manipulacion matricial
 
 Matriz& Matriz::trasponer() {
-    unsigned int cols = columnas();
     unsigned int fils = filas();
+    unsigned int cols = columnas();
     Matriz A(cols, fils);
     for (unsigned int i = 0; i < cols; ++i) {
         for (unsigned int j = 0; j < fils; ++j)

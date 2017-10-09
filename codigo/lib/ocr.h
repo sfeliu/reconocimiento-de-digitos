@@ -24,8 +24,7 @@ class OCR {
         OCR(base_de_datos_t &bd, datos_t &datos, unsigned int alpha = 0, unsigned int k = 0);
         
         // Metodos
-        clave_t reconocer(const datos_t &datos) const;
-        inline clave_t reconocer(const dato_t &dato) const { return reconocer(datos_t(1, dato)); };
+        clave_t reconocer(const dato_t &dato) const;
         void cant_componentes_PCA(const unsigned int alpha);
         inline unsigned int cant_componentes_PCA() const { return _alpha; };
         inline void cant_vecinos_kNN(const unsigned int k) { _k = k; };

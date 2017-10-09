@@ -62,7 +62,7 @@ class Matriz {
             unsigned int fils = filas();
             unsigned int cols = columnas();
             for (unsigned int i = 0; i < fils; ++i) {
-                for (unsigned int j = 0; j < cols; ++j) printf("%f, ", (*this)(i,j));
+                for (unsigned int j = 0; j < cols; ++j) printf("%0.20f,", (*this)(i,j));
                 printf("\n");
             }
         }

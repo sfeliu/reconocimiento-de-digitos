@@ -33,11 +33,11 @@ OCR::OCR(base_de_datos_t &bd, datos_t &datos, unsigned int alpha, unsigned int k
 
 // Metodos
 
-OCR::clave_t OCR::reconocer(const datos_t &datos) const {
-    datos_t d = datos;
-    Matriz X = _normalizar_datos(d);
-    cout << "Aplicando kNN..." << endl;
-    return _kNN(10, _alpha == 0 ? X : _cb * X);
+OCR::clave_t OCR::reconocer(const dato_t &dato) const {
+    datos_t datos = datos_t(1, dato);
+    Matriz X = _normalizar_datos(datos);
+    //cout << "Aplicando kNN..." << endl;
+    return _kNN(_k, _alpha == 0 ? X : _cb * X);
 }
 
 void OCR::cant_componentes_PCA(const unsigned int alpha) {
@@ -50,22 +50,22 @@ void OCR::cant_componentes_PCA(const unsigned int alpha) {
 // Funciones auxiliares
 
 void OCR::_aplicar_PCA() {
-    cout << "Aplicando PCA..." << endl;
+    //cout << "Aplicando PCA..." << endl;
     
     // Obtengo matriz de datos normalizados (los datos por columna)
-    cout << "  * Normalizando datos..." << endl;
+    //cout << "  * Normalizando datos..." << endl;
     _muestra = _normalizar_datos(_datos);
     
     if (_alpha == 0) return;
     
     // Obtengo matriz de covarianza
     if (_cov.vacia()) {
-        cout << "  * Computando matriz de covarianza..." << endl;
+        //cout << "  * Computando matriz de covarianza..." << endl;
         _cov = _muestra.producto_por_traspuesta();
     }
     
     // Obtengo matriz de cambio de base
-    cout << "  * Obteniendo matriz de cambio de base..." << endl;
+    //cout << "  * Obteniendo matriz de cambio de base..." << endl;
     Matriz B = _cov;
     unsigned int cols = B.filas();
     _cb = Matriz(_alpha, cols);
@@ -77,7 +77,7 @@ void OCR::_aplicar_PCA() {
     }
 
     // Aplico el cambio de base a los datos
-    cout << "  * Aplicando cambio de base..." << endl;
+    //cout << "  * Aplicando cambio de base..." << endl;
     _muestra = _cb * _muestra;
 }
 
@@ -88,7 +88,7 @@ Matriz OCR::_normalizar_datos(datos_t &datos) const {
     double m = sqrt(_n - 1);
     for (unsigned int i = 0; i < cols; ++i) {
         for (unsigned int j = 0; j < fils; ++j)
-            A(i,j) = (datos[j][i] - _media(i)) / m;
+            A(i,j) = ((double) datos[j][i] - _media(i)) / m;
     }
     return A;
 }
@@ -96,13 +96,13 @@ Matriz OCR::_normalizar_datos(datos_t &datos) const {
 bool OCR::_metodo_de_la_potencia(const Matriz& B, const Matriz &x0, Matriz& v, double &a) const {
     // Obtengo el autovector
     Matriz u = x0.normalizado();
-    v = (B * x0).normalizado();
+    v = (B * u).normalizado();
     // Si x0 es autovector falla el metodo porque no puedo asegurar que su autovalor sea el dominante
     if (fputils::eq(v.distancia(u), 0)) return false;
     do {
         u = v;
         v = (B * v).normalizado();
-    } while (v.distancia(u) > 10e-10); // Itero hasta que el cambio sea poco
+    } while (v.distancia(u) > 10e-5); // Itero hasta que el cambio sea poco
     
     // Obtengo el autovalor
     a = v.producto_interno(B * v) / v.producto_interno(v);
@@ -134,7 +134,8 @@ OCR::clave_t OCR::_kNN(const unsigned int k, const Matriz &v) const {
     cmp menor;
     vector<tupla> cola;
     for (base_de_datos_t::const_iterator it = _bd.cbegin(); it != _bd.cend(); ++it) {
-        for (unsigned int i = 0; i < it->second.size(); ++i) {
+        unsigned int tam = it->second.size();
+        for (unsigned int i = 0; i < tam; ++i) {
             tupla t = make_pair(it->first, _distancia(it->second[i], v));
             // Guardo t en la cola si hay menos de k elementos o si hay al menos k elementos
             // y la distancia de t es menor o igual que la del elemento con mayor distancia
@@ -157,12 +158,14 @@ OCR::clave_t OCR::_kNN(const unsigned int k, const Matriz &v) const {
     dict dists_por_clave;
     // Guardo en una lista iteradores a las claves con mas elementos
     vector<dict::iterator> claves_con_mas_vecinos;
-    unsigned int max_cant_vecinos = 0;
-    for (unsigned int i = 0; i < cola.size(); ++i) {
+    unsigned int max_cant_vecinos = 1;
+    unsigned int tam_cola = cola.size();
+    for (unsigned int i = 0; i < tam_cola; ++i) {
         // Agrego la distancia al multiset de la clave correspondiente,
         // definiendola antes si es necesario
         dict::iterator it = dists_por_clave.lower_bound(cola[i].first);
-        if (it->first != cola[i].first) it = dists_por_clave.insert(it, make_pair(cola[i].first, dict::mapped_type()));
+        if (it == dists_por_clave.end() || it->first != cola[i].first)
+            it = dists_por_clave.insert(it, make_pair(cola[i].first, dict::mapped_type()));
         it->second.insert(cola[i].second);
         
         // Actualizo la lista de claves con mas vecinos y la maxima cantidad de vecinos
@@ -184,7 +187,8 @@ OCR::clave_t OCR::_kNN(const unsigned int k, const Matriz &v) const {
     // Dado que los multisets guardan a sus elementos de de menor a mayor, puedo hacer obtener
     // esto haciendo uso de la funcion lexicographical_compare
     dict::iterator clave_con_vecinos_mas_cercanos = claves_con_mas_vecinos[0];
-    for (unsigned int i = 1; i < claves_con_mas_vecinos.size(); ++i) {
+    unsigned int tam = claves_con_mas_vecinos.size();
+    for (unsigned int i = 1; i < tam; ++i) {
         if (lexicographical_compare(
                 claves_con_mas_vecinos[i]->second.begin(), claves_con_mas_vecinos[i]->second.end(),
                 clave_con_vecinos_mas_cercanos->second.begin(), clave_con_vecinos_mas_cercanos->second.end())
@@ -195,9 +199,9 @@ OCR::clave_t OCR::_kNN(const unsigned int k, const Matriz &v) const {
     return clave_con_vecinos_mas_cercanos->first;
 }
 
-double OCR::_distancia(const unsigned int j, const Matriz &v) const {
+double OCR::_distancia(const indice_t j, const Matriz &v) const {
     unsigned int n = _alpha == 0 ? v.filas() : _alpha;
     double suma = 0;
     for (unsigned int i = 0; i < n; ++i) suma += pow(_muestra(i,j) - v(i), 2);
-    return sqrt(suma);
+    return suma; // no aplico la raiz para evitar introducir error de redondeo innecesario
 }
