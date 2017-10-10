@@ -1,3 +1,0 @@
-/Users/pablo2martin/ClionProjects/trabajo/cmake-build-debug/CMakeFiles/rebuild_cache.dir
-/Users/pablo2martin/ClionProjects/trabajo/cmake-build-debug/CMakeFiles/edit_cache.dir
-/Users/pablo2martin/ClionProjects/trabajo/cmake-build-debug/CMakeFiles/trabajo.dir

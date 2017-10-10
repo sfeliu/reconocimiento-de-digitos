@@ -2,9 +2,9 @@
 
 // Constructores
 
-Matriz::Matriz() : _matriz(NULL), _fils(0), _cols(0) {}
+Matriz::Matriz() : _matriz(NULL), _fils(0), _cols(0), _mask() {}
 
-Matriz::Matriz(const Matriz &A) : _matriz(NULL), _fils(A.filas()), _cols(A.columnas()) {
+Matriz::Matriz(const Matriz &A) : _fils(A.filas()), _cols(A.columnas()) {
     _crear_matriz();
     for (unsigned int i = 0; i < _fils; ++i) {
         for (unsigned int j = 0; j < _cols; ++j)
@@ -12,11 +12,11 @@ Matriz::Matriz(const Matriz &A) : _matriz(NULL), _fils(A.filas()), _cols(A.colum
     }
 }
 
-Matriz::Matriz(const unsigned int n) : _matriz(NULL), _fils(n), _cols(n) {
+Matriz::Matriz(const unsigned int n) : _fils(n), _cols(n) {
     _crear_matriz();
 }
 
-Matriz::Matriz(const unsigned int f, const unsigned int c) : _matriz(NULL), _fils(f), _cols(c) {
+Matriz::Matriz(const unsigned int f, const unsigned int c) : _fils(f), _cols(c) {
     _crear_matriz();
 }
 
@@ -38,6 +38,7 @@ void Matriz::swap(Matriz &A) {
     std::swap(_matriz, A._matriz);
     std::swap(_fils, A._fils);
     std::swap(_cols, A._cols);
+    std::swap(_mask, A._mask);
 }
 
 
@@ -154,6 +155,9 @@ void Matriz::_crear_matriz() {
     _matriz = new double*[_fils];
     for (unsigned int i = 0; i < _fils; ++i)
         _matriz[i] = new double[_cols];
+    _mask.fils.first = _mask.cols.first = 0;
+    _mask.fils.second = _fils - 1;
+    _mask.cols.second = _cols - 1;
 }
 
 void Matriz::_verif_misma_dimension(const Matriz& A) const {

@@ -24,11 +24,12 @@ class OCR {
         OCR(base_de_datos_t &bd, datos_t &datos, unsigned int alpha = 0, unsigned int k = 0);
 
         // Metodos
-        clave_t reconocer(const dato_t &dato) const;
-        void cant_componentes_PCA(const unsigned int alpha);
-        inline unsigned int cant_componentes_PCA() const { return _alpha; };
-        inline void cant_vecinos_kNN(const unsigned int k) { _k = k; };
-        inline unsigned int cant_vecinos_kNN() const { return _k; };
+        vector<clave_t> reconocer(const datos_t &datos) const;
+        inline clave_t reconocer(const dato_t &dato) const { return reconocer(datos_t(1, dato))[0]; };
+        void alpha_PCA(const unsigned int alpha);
+        inline unsigned int alpha_PCA() const { return _alpha; };
+        inline void k_KNN(const unsigned int k) { _k = k; };
+        inline unsigned int k_KNN() const { return _k; };
 
     private:
 
@@ -49,8 +50,8 @@ class OCR {
         bool _metodo_de_la_potencia(const Matriz &B, const Matriz &x0, Matriz& v, double &a) const;
         void _aplicar_deflacion(Matriz &B, const Matriz &v, const double a) const;
         Matriz _vector_random(const unsigned int f) const;
-        clave_t _kNN(const unsigned int k, const Matriz &v) const;
-        double _distancia(const unsigned int j, const Matriz &v) const;
+        clave_t _KNN(const unsigned int k, const Matriz &A, const unsigned int col) const;
+        double _distancia(const unsigned int j, const Matriz &A, const unsigned int col) const;
 
 };
 

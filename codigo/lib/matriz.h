@@ -13,6 +13,12 @@ class Matriz {
     
     public:
         
+        // Structs
+        struct mascara {
+            pair<unsigned int, unsigned int> fils;
+            pair<unsigned int, unsigned int> cols;
+        };
+        
         // Constructores
         Matriz();
         Matriz(const Matriz &A);
@@ -26,12 +32,18 @@ class Matriz {
         inline bool vacia() const { return _matriz == NULL; };
         
         // Acceso de datos
-        inline unsigned int filas() const { return _fils; };
-        inline unsigned int columnas() const { return _cols; };
-        inline double& operator()(const unsigned int i) { return _matriz[i][0]; };
-        inline double operator()(const unsigned int i) const { return _matriz[i][0]; };
-        inline double& operator()(const unsigned int i, const unsigned int j) { return _matriz[i][j]; };
-        inline double operator()(const unsigned int i, const unsigned int j) const { return _matriz[i][j]; };
+        inline unsigned int filas() const { return _mask.fils.second - _mask.fils.first + 1; };
+        inline unsigned int columnas() const { return _mask.cols.second - _mask.cols.first + 1; };
+        inline unsigned int filas_real() const { return _fils; };
+        inline unsigned int columnas_real() const { return _cols; };
+        inline double& operator()(const unsigned int i) { return (*this)(i,0); };
+        inline double operator()(const unsigned int i) const { return (*this)(i,0); };
+        inline double& operator()(const unsigned int i, const unsigned int j) {
+            return _matriz[i-_mask.fils.first][j-_mask.cols.first];
+        };
+        inline double operator()(const unsigned int i, const unsigned int j) const {
+            return _matriz[i-_mask.fils.first][j-_mask.cols.first];
+        };
         
         // Operadores aritmeticos
         Matriz operator+(const Matriz& A) const;
@@ -49,6 +61,13 @@ class Matriz {
         
         // Manipulacion matricial
         Matriz& trasponer();
+        inline Matriz& enmascarar(pair<unsigned int, unsigned int> fils, pair<unsigned int, unsigned int> cols) {
+            _mask.fils = fils; _mask.cols = cols;
+            return *this;
+        };
+        inline Matriz& enmascarar_filas(unsigned int d, unsigned int h) { _mask.fils = make_pair(d, h); return *this; };
+        inline Matriz& enmascarar_columnas(unsigned int d, unsigned int h) { _mask.cols = make_pair(d, h); return *this; };
+        inline Matriz& desenmascarar() { return enmascarar(make_pair(0, _fils-1), make_pair(0, _cols-1)); };
         
         // Otros
         double producto_interno(const Matriz& A) const;
@@ -73,6 +92,7 @@ class Matriz {
         double** _matriz;
         unsigned int _fils;
         unsigned int _cols;
+        mascara _mask;
         
         // Funciones auxiliares
         void _crear_matriz();

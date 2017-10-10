@@ -33,17 +33,26 @@ OCR::OCR(base_de_datos_t &bd, datos_t &datos, unsigned int alpha, unsigned int k
 
 // Metodos
 
-OCR::clave_t OCR::reconocer(const dato_t &dato) const {
-    datos_t datos = datos_t(1, dato);
-    Matriz X = _normalizar_datos(datos);
-    //cout << "Aplicando kNN..." << endl;
-    return _kNN(_k, _alpha == 0 ? X : _cb * X);
+vector<OCR::clave_t> OCR::reconocer(const datos_t &datos) const {
+    Matriz A = _normalizar_datos(datos);
+    A = _alpha == 0 ? A : _cb * A;
+    unsigned int n = A.columnas();
+    vector<clave_t> clases(n);
+    for (unsigned int i = 0; i < n; ++i)
+        clases[i] = _KNN(_k, A, i);
+    return clases;
 }
 
-void OCR::cant_componentes_PCA(const unsigned int alpha) {
+void OCR::alpha_PCA(const unsigned int alpha) {
     _alpha = alpha;
-    // Si la cantidad de componentes es mayor a la que ya tengo reaplico PCA
-    if (_alpha > _muestra.filas()) _aplicar_PCA();
+    // Si la cantidad de componentes es mayor a la que ya tengo, reaplico PCA.
+    // Si no, dejo la cantidad de componentes necesarios.
+    if (_alpha > _cb.filas_real()) {
+        _aplicar_PCA();
+    } else {
+        _cb.enmascarar_filas(0, _alpha - 1);
+        _muestra.enmascarar_filas(0, _alpha - 1);
+    }
 }
 
 
@@ -88,7 +97,7 @@ Matriz OCR::_normalizar_datos(const datos_t &datos) const {
     double m = sqrt(_n - 1);
     for (unsigned int i = 0; i < cols; ++i) {
         for (unsigned int j = 0; j < fils; ++j)
-            A(i,j) = ((double) datos[j][i] - _media(i)) / m;
+            A(i,j) = (datos[j][i] - _media(i)) / m;
     }
     return A;
 }
@@ -102,7 +111,7 @@ bool OCR::_metodo_de_la_potencia(const Matriz& B, const Matriz &x0, Matriz& v, d
     do {
         u = v;
         v = (B * v).normalizado();
-    } while (v.distancia(u) > 10e-5); // Itero hasta que el cambio sea poco
+    } while (v.distancia(u) > 10e-10); // Itero hasta que el cambio sea poco
 
     // Obtengo el autovalor
     a = v.producto_interno(B * v) / v.producto_interno(v);
@@ -115,12 +124,13 @@ void OCR::_aplicar_deflacion(Matriz &B, const Matriz &v, const double a) const {
 }
 
 Matriz OCR::_vector_random(const unsigned int f) const {
+    srand(time(NULL));
     Matriz v(f, 1);
     for (unsigned int i = 0; i < f; ++i) v(i) = rand();
     return v;
 }
 
-OCR::clave_t OCR::_kNN(const unsigned int k, const Matriz &v) const {
+OCR::clave_t OCR::_KNN(const unsigned int k, const Matriz &A, const unsigned int col) const {
     // Creo una cola de prioridad de tuplas <clave, distancia> en la cual la mayor prioridad
     // corresponde a la tupla de mayor distancia.
     // Cada tupla corresponde a un elemento de la base de datos de entrenamiento, donde clave
@@ -136,10 +146,10 @@ OCR::clave_t OCR::_kNN(const unsigned int k, const Matriz &v) const {
     for (base_de_datos_t::const_iterator it = _bd.cbegin(); it != _bd.cend(); ++it) {
         unsigned int tam = it->second.size();
         for (unsigned int i = 0; i < tam; ++i) {
-            tupla t = make_pair(it->first, _distancia(it->second[i], v));
+            tupla t = make_pair(it->first, _distancia(it->second[i], A, col));
             // Guardo t en la cola si hay menos de k elementos o si hay al menos k elementos
             // y la distancia de t es menor o igual que la del elemento con mayor distancia
-            if (cola.size() < k || !menor(cola[0], t)) {
+            if (cola.size() < k || menor(t, cola[0])) {
                 // Si la distancia de t es menor o igual que la del elemento con mayor distancia
                 // saco al elemento con mayor distancia de la cola antes de insertar a t
                 if (cola.size() >= k) {
@@ -199,9 +209,9 @@ OCR::clave_t OCR::_kNN(const unsigned int k, const Matriz &v) const {
     return clave_con_vecinos_mas_cercanos->first;
 }
 
-double OCR::_distancia(const indice_t j, const Matriz &v) const {
-    unsigned int n = _alpha == 0 ? v.filas() : _alpha;
+double OCR::_distancia(const indice_t j, const Matriz &A, const unsigned int col) const {
+    unsigned int n = A.filas();
     double suma = 0;
-    for (unsigned int i = 0; i < n; ++i) suma += pow(_muestra(i,j) - v(i), 2);
+    for (unsigned int i = 0; i < n; ++i) suma += pow(_muestra(i,j) - A(i,col), 2);
     return suma; // no aplico la raiz para evitar introducir error de redondeo innecesario
 }

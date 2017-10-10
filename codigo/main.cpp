@@ -42,8 +42,8 @@ int main() {
         archivo_entrenamiento.peek(); // esto levanta el flag de EOF si se termino el archivo
     }
 
-    OCR ocr(bd, datos, 50, 15);
-    /*
+    OCR ocr(bd, datos, 25, 15);
+    
     // Abro el archivo de datos de testing
     ifstream archivo_test("data/test.csv");
     if (!archivo_test.is_open()) throw runtime_error("No se pudo leer el archivo");
@@ -75,8 +75,8 @@ int main() {
     unsigned int n = datos_test.size();
     printf("ImageId,Label\n");
     for (unsigned int i = 0; i < n; ++i) {
-        printf("%d,%c\n", i+1, ocr.reconocer(datos[i]));
-    }*/
+        printf("%d,%c\n", i+1, ocr.reconocer(datos_test[i]));
+    }
 
     return 0;
 }
