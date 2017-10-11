@@ -1,4 +1,4 @@
-\documentclass[12pt, a4paper]{article}
+\documentclass[12pt, a4paper]{report}
 \usepackage[utf8]{inputenc}
 \usepackage[spanish]{babel}
 \usepackage{geometry} % márgenes
@@ -7,5 +7,13 @@
 \begin{document}
 
 \include{caratula}
+
+\tableofcontents{}
+
+\chapter{Introducción Teórica} 
+\input{intro_teorica_s.tex}
+
+\chapter{Desarrollo}
+\input{desarrollo_s.tex}
 
 \end{document}

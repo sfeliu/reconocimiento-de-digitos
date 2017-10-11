@@ -1,0 +1,15 @@
+
+El objetivo de este trabajo práctico es el desarrollo y evaluación de una herramienta
+de OCR (Optical Character Recognition) para el reconocimiento de dıgitos manuscritos en
+imágenes.
+
+Para saber que digito estamos intentando de reconocer tendremos una base imágenes ya reconocidas en donde buscaremos las k imagenes mas parecidas a la original. Este algoritmo para las imagenes es muy costoso por lo que se utilizara una reducción de espacio con PCA.
+
+\section{k-NN}
+k-NN es una algoritmo del cual se obtienen las k imágenes mas cercanas al comprar todas las imágenes vectorizadas con la nueva imágen sin clase. Al finalizar de compararlos con todos y haber obtenido k imágenes pertenecientes a cualquier clase, se decide con algún tipo de criterio de que clase es la nueva imágen, en este caso decidimos usar la clase que más aparesca entre aquellos k obtenidos.
+
+
+\section{PCA}
+PCA es un metodo en el cual modificamos el vector imágen de tal manera que nos queden los componentes que mas nos importan al comienzo del vector. De esta manera se puede encontrar un elemento $\alpha$ que posea una \textit{importancia} relativamente inferior que la del próximo elemento, por lo tanto podemos decidir achicar la dimensión hasta el último elemento más relevante. 
+
+Estos elementos serian autovalores de una matriz, en donde la importancia seria el tamaño en módulo del autovalor. Lo tomamos de esta manera porque los autovalores se obtienen de una matriz de covarianza, por lo tanto si hay una diferencia abrupta entre ellos podemos tomarlo como que a partir de ese punto la diferencia entre las coordenadas de las imágenes comienza a ser desechable.
