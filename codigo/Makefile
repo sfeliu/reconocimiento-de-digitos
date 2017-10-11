@@ -1,15 +1,23 @@
 CC=g++
 CFLAGS= -Wall -O3
 
-all: main experimentos
+all: main cross_validation
 	
-main: main.cpp lib/matriz.h lib/matriz.cpp lib/fputils.h lib/fputils.cpp lib/ocr.h lib/ocr.cpp
+main: main.cpp matriz.o fputils.o ocr.o
 	$(CC) $(CFLAGS) $^ -o $@
 	
-experimentos: experimentos.cpp
+cross_validation: cross_validation.cpp matriz.o fputils.o ocr.o
 	$(CC) $(CFLAGS) $^ -o $@
+	
+ocr.o: lib/ocr.cpp
+	$(CC) -c $(CFLAGS) $^ -o $@
+	
+matriz.o: lib/matriz.cpp
+	$(CC) -c $(CFLAGS) $^ -o $@
+	
+fputils.o: lib/fputils.cpp
+	$(CC) -c $(CFLAGS) $^ -o $@
 	
 clean:
 	rm -f *.o
 	rm -f main
-	rm -f experimentos
