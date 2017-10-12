@@ -114,6 +114,7 @@ int main(int argc, const char *argv[]) {
     unsigned int KFold_min = arg_KFold_min.getValue();
     unsigned int KFold_max = arg_KFold_max.getValue();
     if (KFold_min > KFold_max) throw runtime_error("error: k-KFold: el minimo debe ser menor o igual al maximo.");
+    if (KFold_min <= 1) throw runtime_error("error: k-KFold: la cantidad de folds debe ser al menos 2.");
         
     unsigned int PCA_min = arg_PCA_min.getValue();
     unsigned int PCA_max = arg_PCA_max.getValue();
