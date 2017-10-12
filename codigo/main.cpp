@@ -1,82 +1,88 @@
 #include <fstream>
 #include <iostream>
-#include <limits>
 #include <vector>
+#include "lectura_datos.h"
 #include "lib/ocr.h"
+#include "lib/timer.h"
+#include "lib/tclap/CmdLine.h"
 
 using namespace std;
 
-int main() {
+int main(int argc, const char *argv[]) {
+    
+    // Parseo argumentos
+    TCLAP::CmdLine cmd("Hace cross validation del OCR", ' ', "");
+    TCLAP::ValueArg<string> arg_test("t", "testing", "Ruta del archivo de testing", true, "", "string", cmd);
+    TCLAP::ValueArg<string> arg_train("e", "entrenamiento", "Ruta del archivo de entrenamiento", true, "", "string", cmd);
+    TCLAP::ValueArg<string> arg_output("o", "output", "Ruta del archivo de salida", false, "resultados.csv", "string", cmd);
+    TCLAP::ValueArg<unsigned int> arg_k_KNN("k", "kNN", "k-KNN", true, 0, "unsigned int", cmd);
+    TCLAP::ValueArg<unsigned int> arg_alpha_PCA("a", "alpha", "alpha-PCA", true, 0, "unsigned int", cmd);
+    cmd.parse(argc, argv);
+    
+    
+    // Inicializo timer
+    
+    Timer timer = Timer();
+
 
     // Lectura de base de datos de entrenamiento
 
-    //cout << "Leyendo base de datos de entrenamiento..." << endl;
+    cout << "Leyendo base de datos de entrenamiento... " << flush;
+    timer.iniciar();
 
-    // Abro el archivo de datos de entrenamiento
-    ifstream archivo_entrenamiento("data/train.csv");
-    if (!archivo_entrenamiento.is_open()) throw runtime_error("No se pudo leer el archivo");
-    archivo_entrenamiento.ignore(numeric_limits<streamsize>::max(), '\n'); // descarto cabecera
-
-    // Leo los datos
-    OCR::base_de_datos_t bd;
-    OCR::datos_t datos; // matriz de datos
-    while (!archivo_entrenamiento.eof()) {
-        // Obtengo la clave de la clase de la imagen
-        OCR::clave_t clave;
-        archivo_entrenamiento >> clave;
-        // Agrego el numero de fila a la base de datos
-        bd[clave].push_back((OCR::indice_t) datos.size());
-        // Agrego fila a la matriz
-        datos.push_back(OCR::dato_t());
-        // Leo el vector
-        while (archivo_entrenamiento.peek() == ',') {
-            // Ignoro la coma
-            archivo_entrenamiento.ignore();
-            // Leo el valor del pixel
-            unsigned int val;
-            archivo_entrenamiento >> val;
-            // Agrego el valor a la matriz
-            datos.back().push_back(val);
-        }
-        archivo_entrenamiento.ignore(numeric_limits<streamsize>::max(), '\n'); // descarto el salto de linea
-        archivo_entrenamiento.peek(); // esto levanta el flag de EOF si se termino el archivo
-    }
-
-    OCR ocr(bd, datos, 25, 15);
+    OCR::base_de_datos_t bd_train;
+    OCR::datos_t datos_train;
+    leer_datos_train(arg_train.getValue().c_str(), bd_train, datos_train);
     
-    // Abro el archivo de datos de testing
-    ifstream archivo_test("data/test.csv");
-    if (!archivo_test.is_open()) throw runtime_error("No se pudo leer el archivo");
-    archivo_test.ignore(numeric_limits<streamsize>::max(), '\n'); // descarto cabecera
+    cout << timer.tiempo() << "s" << endl;
+    
+    
+    // Lectura de datos de testing
 
-    // Leo los datos
-    OCR::datos_t datos_test; // matriz de datos
-    while (!archivo_test.eof()) {
-        // Agrego fila a la matriz
-        datos_test.push_back(OCR::dato_t());
-        // Obtengo el primer valor
-        unsigned int primero;
-        archivo_test >> primero;
-        datos_test.back().push_back(primero);
-        // Leo el vector
-        while (archivo_test.peek() == ',') {
-            // Ignoro la coma
-            archivo_test.ignore();
-            // Leo el valor del pixel
-            unsigned int val;
-            archivo_test >> val;
-            // Agrego el valor a la matriz
-            datos_test.back().push_back(val);
-        }
-        archivo_test.ignore(numeric_limits<streamsize>::max(), '\n'); // descarto el salto de linea
-        archivo_test.peek(); // esto levanta el flag de EOF si se termino el archivo
-    }
+    cout << "Leyendo datos de testing... " << flush;
+    timer.iniciar();
 
-    unsigned int n = datos_test.size();
-    printf("ImageId,Label\n");
+    OCR::datos_t datos_test;
+    leer_datos_test(arg_test.getValue().c_str(), datos_test);
+    
+    cout << timer.tiempo() << "s" << endl;
+    
+
+    // Reconocimiento de caracter
+    
+    cout << "Inicializando OCR... " << flush;
+    timer.iniciar();
+    
+    // Inicializo OCR
+    OCR ocr(bd_train, datos_train, arg_alpha_PCA.getValue(), arg_k_KNN.getValue());
+    
+    cout << timer.tiempo() << "s" << endl;
+    
+    cout << "Reconociendo caracteres... " << flush;
+    timer.iniciar();
+    
+    vector<OCR::clave_t> resultados = ocr.reconocer(datos_test);
+    
+    cout << timer.tiempo() << "s" << endl;
+    
+    
+    // Escritura de resultados
+    
+    cout << "Escribiendo resultados... " << flush;
+    timer.iniciar();
+    
+    ofstream archivo_resultados(arg_output.getValue());
+    archivo_resultados << "ImageId,Label" << endl;
+
+    unsigned int n = resultados.size();
     for (unsigned int i = 0; i < n; ++i) {
-        printf("%d,%c\n", i+1, ocr.reconocer(datos_test[i]));
+        archivo_resultados << i+1 << ',' << resultados[i] << endl;
     }
+    
+    archivo_resultados.close();
+    
+    cout << timer.tiempo() << "s" << endl;
+
 
     return 0;
 }
