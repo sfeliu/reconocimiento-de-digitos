@@ -1,7 +1,5 @@
 #include "ocr.h"
 
-const unsigned int KNN_DEFAULT_K = 10;
-
 // Constructores
 
 OCR::OCR(const base_de_datos_t &bd, const datos_t &datos, unsigned int alpha, unsigned int k) : _bd(bd), _datos(datos), _alpha(alpha), _k(k) {
@@ -15,7 +13,7 @@ OCR::OCR(const base_de_datos_t &bd, const datos_t &datos, unsigned int alpha, un
     _n = fils;
 
     // Obtengo cantidad de vecinos para kNN
-    if (_k == 0) _k = _n < KNN_DEFAULT_K ? _n : KNN_DEFAULT_K;
+    if (_k == 0) _k = _n;
 
     // Obtengo la media de los datos
     _media = Matriz(cols, 1);
