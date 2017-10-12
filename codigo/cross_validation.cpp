@@ -62,7 +62,7 @@ void KFold(
                     datos_test.back()[j] = datos_train[indices_test[i]][j];
             }
         }
-    
+        
         // Testeo OCR
         ocr.base_de_datos(bd_train);
         vector<OCR::clave_t> resultados = ocr.reconocer(datos_test);
@@ -148,7 +148,7 @@ int main(int argc, const char *argv[]) {
                 // Hago cross validation
                 ocr.alpha_PCA(a);
                 ocr.k_KNN(k);
-                KFold(k, ocr, bd_train, datos_train, ruta_salida);
+                KFold(f, ocr, bd_train, datos_train, ruta_salida);
             }
         }
     }
