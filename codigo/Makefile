@@ -1,12 +1,12 @@
 CC=g++
 CFLAGS= -std=c++11 -Wall -O3
 
-all: main cross_validation
+all: main.bin cross_validation.bin
 	
-main: main.cpp matriz.o ocr.o
+main.bin: main.cpp matriz.o ocr.o
 	$(CC) $(CFLAGS) $^ -o $@
 	
-cross_validation: cross_validation.cpp matriz.o ocr.o
+cross_validation.bin: cross_validation.cpp matriz.o ocr.o
 	$(CC) $(CFLAGS) $^ -o $@
 	
 ocr.o: lib/ocr.cpp
@@ -17,4 +17,4 @@ matriz.o: lib/matriz.cpp
 	
 clean:
 	rm -f *.o
-	rm -f main
+	rm -f *.bin
