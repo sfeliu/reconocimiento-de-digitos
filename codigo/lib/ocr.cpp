@@ -2,19 +2,14 @@
 
 // Constructores
 
-OCR::OCR(const base_de_datos_t &bd, const datos_t &datos, unsigned int alpha, unsigned int k) : _bd(bd), _datos(datos), _alpha(alpha), _k(k) {
-
-    if (datos.size() == 0 || datos[0].size() == 0)
-        throw runtime_error("No hay datos para entrenar.");
+OCR::OCR(const base_de_datos_t &bd, const datos_t &datos, unsigned int alpha, unsigned int k) : _alpha(alpha), _k(k) {
     
+    // Defino los datos de entrenamiento y los parametros de reconocimiento
+    datos_entrenamiento(bd, datos);
+    
+    // Dimensiones de datos
     unsigned int fils = datos.size();
     unsigned int cols = datos[0].size();
-
-    // Obtengo la cantidad total de datos
-    _n = fils;
-
-    // Obtengo cantidad de vecinos para kNN
-    if (_k == 0) _k = _n;
 
     // Obtengo la media de los datos
     _media = Matriz(cols, 1);
@@ -31,8 +26,34 @@ OCR::OCR(const base_de_datos_t &bd, const datos_t &datos, unsigned int alpha, un
 
 // Metodos
 
+unsigned int OCR::_tam_base_de_datos(const base_de_datos_t &bd) const {
+    unsigned int cuenta = 0;
+    for (auto it = bd.cbegin(); it != bd.cend(); ++it) {
+        unsigned int tam = it->second.size();
+        for (unsigned int i = 0; i < tam; ++i) ++cuenta;
+    }
+    return cuenta;
+}
+
+void OCR::datos_entrenamiento(const base_de_datos_t &bd, const datos_t &datos) {
+    
+    if (datos.size() == 0 || datos[0].size() == 0)
+        throw runtime_error("No hay datos para entrenar.");
+    
+    if (_tam_base_de_datos(bd) != datos.size())
+        throw runtime_error("La base de datos esta vacia.");
+    
+    _bd = bd;
+    _datos = datos;
+    k_KNN(_k);
+    alpha_PCA(_alpha);
+}
+
 void OCR::alpha_PCA(const unsigned int alpha) {
-    _alpha = alpha;
+    _alpha = alpha > _tam_datos() ? 0 : alpha;
+    
+    if (_alpha == 0) return; // no hace falta hacer nada
+    
     // Si la cantidad de componentes es mayor a la que ya tengo, reaplico PCA.
     // Si no, dejo la cantidad de componentes necesarios.
     if (_alpha > _cb.filas_real()) {
@@ -89,7 +110,7 @@ Matriz OCR::_normalizar_datos(const datos_t &datos) const {
     unsigned int fils = datos.size();
     unsigned int cols = datos[0].size();
     Matriz A = Matriz(cols, fils);
-    double m = sqrt(_n - 1);
+    double m = sqrt(_cant_datos() - 1);
     for (unsigned int i = 0; i < cols; ++i) {
         for (unsigned int j = 0; j < fils; ++j)
             A(i,j) = (datos[j][i] - _media(i)) / m;

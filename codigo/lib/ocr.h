@@ -24,11 +24,10 @@ class OCR {
         OCR(const base_de_datos_t &bd, const datos_t &datos, unsigned int alpha = 0, unsigned int k = 0);
 
         // Metodos
-        inline const base_de_datos_t& base_de_datos() { return _bd; };
-        inline void base_de_datos(const base_de_datos_t &bd) { _bd = bd; };
+        void datos_entrenamiento(const base_de_datos_t &bd, const datos_t &datos);
         void alpha_PCA(const unsigned int alpha);
         inline unsigned int alpha_PCA() const { return _alpha; };
-        inline void k_KNN(const unsigned int k) { _k = k; };
+        inline void k_KNN(const unsigned int k) { _k = (k == 0 || k > _cant_datos()) ? _cant_datos() : k; };
         inline unsigned int k_KNN() const { return _k; };
         vector<clave_t> reconocer(const datos_t &datos) const;
         inline clave_t reconocer(const dato_t &dato) const { return reconocer(datos_t(1, dato))[0]; };
@@ -40,13 +39,15 @@ class OCR {
         datos_t _datos;
         unsigned int _alpha;
         unsigned int _k;
-        unsigned int _n;
         Matriz _media;
         Matriz _muestra;
         Matriz _cov;
         Matriz _cb;
 
         // Funciones auxiliares
+        unsigned int _tam_base_de_datos(const base_de_datos_t &bd) const;
+        inline unsigned int _cant_datos() const { return _datos.size(); };
+        inline unsigned int _tam_datos() const { return _datos[0].size(); };
         void _aplicar_PCA();
         Matriz _normalizar_datos(const datos_t &datos) const;
         bool _metodo_de_la_potencia(const Matriz &B, const Matriz &x0, Matriz& v, double &a) const;
