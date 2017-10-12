@@ -2,10 +2,10 @@
 #define __OCR_H__
 
 #include <algorithm>
+#include <cmath>
 #include <map>
 #include <set>
 #include <vector>
-#include "math.h"
 #include "matriz.h"
 
 using namespace std;
@@ -21,15 +21,16 @@ class OCR {
         using datos_t = vector<dato_t>;
 
         // Constructores
-        OCR(base_de_datos_t &bd, datos_t &datos, unsigned int alpha = 0, unsigned int k = 0);
+        OCR(const base_de_datos_t &bd, const datos_t &datos, unsigned int alpha = 0, unsigned int k = 0);
 
         // Metodos
-        vector<clave_t> reconocer(const datos_t &datos) const;
-        inline clave_t reconocer(const dato_t &dato) const { return reconocer(datos_t(1, dato))[0]; };
+        inline void base_de_datos(const base_de_datos_t &bd) { _bd = bd; };
         void alpha_PCA(const unsigned int alpha);
         inline unsigned int alpha_PCA() const { return _alpha; };
         inline void k_KNN(const unsigned int k) { _k = k; };
         inline unsigned int k_KNN() const { return _k; };
+        vector<clave_t> reconocer(const datos_t &datos) const;
+        inline clave_t reconocer(const dato_t &dato) const { return reconocer(datos_t(1, dato))[0]; };
 
     private:
 

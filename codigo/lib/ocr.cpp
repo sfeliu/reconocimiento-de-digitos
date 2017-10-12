@@ -1,11 +1,10 @@
-#include <iostream>
 #include "ocr.h"
 
 const unsigned int KNN_DEFAULT_K = 10;
 
 // Constructores
 
-OCR::OCR(base_de_datos_t &bd, datos_t &datos, unsigned int alpha, unsigned int k) : _bd(bd), _datos(datos), _alpha(alpha), _k(k) {
+OCR::OCR(const base_de_datos_t &bd, const datos_t &datos, unsigned int alpha, unsigned int k) : _bd(bd), _datos(datos), _alpha(alpha), _k(k) {
 
     unsigned int fils = datos.size();
     if (fils == 0) throw runtime_error("No hay datos.");
@@ -33,16 +32,6 @@ OCR::OCR(base_de_datos_t &bd, datos_t &datos, unsigned int alpha, unsigned int k
 
 // Metodos
 
-vector<OCR::clave_t> OCR::reconocer(const datos_t &datos) const {
-    Matriz A = _normalizar_datos(datos);
-    A = _alpha == 0 ? A : _cb * A;
-    unsigned int n = A.columnas();
-    vector<clave_t> clases(n);
-    for (unsigned int i = 0; i < n; ++i)
-        clases[i] = _KNN(_k, A, i);
-    return clases;
-}
-
 void OCR::alpha_PCA(const unsigned int alpha) {
     _alpha = alpha;
     // Si la cantidad de componentes es mayor a la que ya tengo, reaplico PCA.
@@ -55,26 +44,29 @@ void OCR::alpha_PCA(const unsigned int alpha) {
     }
 }
 
+vector<OCR::clave_t> OCR::reconocer(const datos_t &datos) const {
+    Matriz A = _normalizar_datos(datos);
+    A = _alpha == 0 ? A : _cb * A;
+    unsigned int n = A.columnas();
+    vector<clave_t> clases(n);
+    for (unsigned int i = 0; i < n; ++i)
+        clases[i] = _KNN(_k, A, i);
+    return clases;
+}
+
 
 // Funciones auxiliares
 
 void OCR::_aplicar_PCA() {
-    //cout << "Aplicando PCA..." << endl;
-
     // Obtengo matriz de datos normalizados (los datos por columna)
-    //cout << "  * Normalizando datos..." << endl;
     _muestra = _normalizar_datos(_datos);
 
     if (_alpha == 0) return;
 
     // Obtengo matriz de covarianza
-    if (_cov.vacia()) {
-        //cout << "  * Computando matriz de covarianza..." << endl;
-        _cov = _muestra.producto_por_traspuesta();
-    }
+    if (_cov.vacia()) _cov = _muestra.producto_por_traspuesta();
 
     // Obtengo matriz de cambio de base
-    //cout << "  * Obteniendo matriz de cambio de base..." << endl;
     Matriz B = _cov;
     unsigned int cols = B.filas();
     _cb = Matriz(_alpha, cols);
@@ -86,7 +78,6 @@ void OCR::_aplicar_PCA() {
     }
 
     // Aplico el cambio de base a los datos
-    //cout << "  * Aplicando cambio de base..." << endl;
     _muestra = _cb * _muestra;
 }
 
@@ -131,28 +122,36 @@ Matriz OCR::_vector_random(const unsigned int f) const {
 }
 
 OCR::clave_t OCR::_KNN(const unsigned int k, const Matriz &A, const unsigned int col) const {
+    
     // Creo una cola de prioridad de tuplas <clave, distancia> en la cual la mayor prioridad
     // corresponde a la tupla de mayor distancia.
     // Cada tupla corresponde a un elemento de la base de datos de entrenamiento, donde clave
     // es la clave de su clase y distancia es su distancia con respecto a v.
     // En la cola se iran insertando las tuplas con menor distancia, guardando a lo sumo k
-    // tuplas con distinta distancia.
+    // tuplas.
+    
     using tupla = pair<clave_t, double>;
     struct cmp {
         bool operator()(const tupla &a, const tupla &b) const { return fputils::lt(a.second, b.second); }
     };
     cmp menor;
     vector<tupla> cola;
-    for (base_de_datos_t::const_iterator it = _bd.cbegin(); it != _bd.cend(); ++it) {
+    
+    for (auto it = _bd.cbegin(); it != _bd.cend(); ++it) {
+        
         unsigned int tam = it->second.size();
+        
         for (unsigned int i = 0; i < tam; ++i) {
+            
+            unsigned int tam_cola = cola.size();
             tupla t = make_pair(it->first, _distancia(it->second[i], A, col));
-            // Guardo t en la cola si hay menos de k elementos o si hay al menos k elementos
-            // y la distancia de t es menor o igual que la del elemento con mayor distancia
-            if (cola.size() < k || menor(t, cola[0])) {
-                // Si la distancia de t es menor o igual que la del elemento con mayor distancia
+            
+            // Guardo t en la cola si hay menos de k elementos o si la distancia de t es menor
+            // que la del elemento con mayor distancia
+            if (tam_cola < k || menor(t, cola[0])) {
+                // Si la distancia de t es menor que la del elemento con mayor distancia
                 // saco al elemento con mayor distancia de la cola antes de insertar a t
-                if (cola.size() >= k) {
+                if (tam_cola >= k) {
                     pop_heap(cola.begin(), cola.end(), menor);
                     cola.pop_back();
                 }
@@ -166,10 +165,12 @@ OCR::clave_t OCR::_KNN(const unsigned int k, const Matriz &A, const unsigned int
     // El uso de multisets para guardar las distancia se explica mas abajo.
     using dict = map<clave_t, multiset<double>>;
     dict dists_por_clave;
+    
     // Guardo en una lista iteradores a las claves con mas elementos
     vector<dict::iterator> claves_con_mas_vecinos;
     unsigned int max_cant_vecinos = 1;
     unsigned int tam_cola = cola.size();
+    
     for (unsigned int i = 0; i < tam_cola; ++i) {
         // Agrego la distancia al multiset de la clave correspondiente,
         // definiendola antes si es necesario
