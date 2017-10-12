@@ -3,3 +3,4 @@ informe/*.log
 informe/*.pdf
 informe/*.synctex.gz
 codigo/*.o
+codigo/*.bin
