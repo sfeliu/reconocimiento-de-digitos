@@ -24,6 +24,7 @@ class OCR {
         OCR(const base_de_datos_t &bd, const datos_t &datos, unsigned int alpha = 0, unsigned int k = 0);
 
         // Metodos
+        inline const base_de_datos_t& base_de_datos() { return _bd; };
         inline void base_de_datos(const base_de_datos_t &bd) { _bd = bd; };
         void alpha_PCA(const unsigned int alpha);
         inline unsigned int alpha_PCA() const { return _alpha; };
