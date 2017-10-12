@@ -2,10 +2,10 @@
 #define __MATRIZ_H__
 
 #include <algorithm>
+#include <cmath>
 #include <stdexcept>
 #include <stdio.h>
 #include "fputils.h"
-#include "math.h"
 
 using namespace std;
 
