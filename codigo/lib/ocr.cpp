@@ -4,10 +4,11 @@
 
 OCR::OCR(const base_de_datos_t &bd, const datos_t &datos, unsigned int alpha, unsigned int k) : _bd(bd), _datos(datos), _alpha(alpha), _k(k) {
 
+    if (datos.size() == 0 || datos[0].size() == 0)
+        throw runtime_error("No hay datos para entrenar.");
+    
     unsigned int fils = datos.size();
-    if (fils == 0) throw runtime_error("No hay datos.");
     unsigned int cols = datos[0].size();
-    if (cols == 0) throw runtime_error("No hay datos.");
 
     // Obtengo la cantidad total de datos
     _n = fils;
@@ -43,12 +44,17 @@ void OCR::alpha_PCA(const unsigned int alpha) {
 }
 
 vector<OCR::clave_t> OCR::reconocer(const datos_t &datos) const {
+    if (datos.size() == 0 || datos[0].size() == 0)
+        throw runtime_error("No hay datos para reconocer.");
+    
     Matriz A = _normalizar_datos(datos);
     A = _alpha == 0 ? A : _cb * A;
+    
     unsigned int n = A.columnas();
     vector<clave_t> clases(n);
     for (unsigned int i = 0; i < n; ++i)
         clases[i] = _KNN(_k, A, i);
+    
     return clases;
 }
 
@@ -138,6 +144,7 @@ OCR::clave_t OCR::_KNN(const unsigned int k, const Matriz &A, const unsigned int
     for (auto it = _bd.cbegin(); it != _bd.cend(); ++it) {
         
         unsigned int tam = it->second.size();
+        if (tam == 0) throw runtime_error("La base de datos tiene clases sin datos.");
         
         for (unsigned int i = 0; i < tam; ++i) {
             
