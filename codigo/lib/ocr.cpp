@@ -1,91 +1,111 @@
 #include "ocr.h"
 
+// Utilidades
+
+unsigned int OCR::cant_datos(const base_de_datos_t &bd) {
+    unsigned int cuenta = 0;
+    for (auto it = bd.cbegin(); it != bd.cend(); ++it) cuenta += it->second.size();
+    return cuenta;
+}
+
+unsigned int OCR::tam_datos(const base_de_datos_t &bd) {
+    auto it = bd.cbegin();
+    while (it != bd.cend() && it->second.size() == 0) ++it;
+    return it == bd.cend() ? 0 : it->second[0].size();
+}
+
+
 // Constructores
 
-OCR::OCR(const base_de_datos_t &bd, const datos_t &datos, unsigned int alpha, unsigned int k) : _alpha(alpha), _k(k) {
-    
-    // Defino los datos de entrenamiento y los parametros de reconocimiento
-    datos_entrenamiento(bd, datos);
-    
-    // Dimensiones de datos
-    unsigned int fils = datos.size();
-    unsigned int cols = datos[0].size();
-
-    // Obtengo la media de los datos
-    _media = Matriz(cols, 1);
-    for (unsigned int j = 0; j < cols; ++j) {
-        double suma = 0;
-        for (unsigned int i = 0; i < fils; ++i) suma += datos[i][j];
-        _media(j) = suma / fils;
-    }
-
-    // Aplico PCA
-    _aplicar_PCA();
+OCR::OCR(const base_de_datos_t &bd, unsigned int alpha, unsigned int k) : _alpha(alpha), _k(k) {
+    datos_entrenamiento(bd);
 }
 
 
 // Metodos
 
-unsigned int OCR::_tam_base_de_datos(const base_de_datos_t &bd) const {
-    unsigned int cuenta = 0;
-    for (auto it = bd.cbegin(); it != bd.cend(); ++it) {
-        unsigned int tam = it->second.size();
-        for (unsigned int i = 0; i < tam; ++i) ++cuenta;
-    }
-    return cuenta;
-}
+void OCR::datos_entrenamiento(const base_de_datos_t &bd) {
+    
+    // Obtengo la cantidad y el tamanio de datos
+    _cant_datos = cant_datos(bd);
+    _tam_datos = tam_datos(bd);
+    if (_cant_datos == 0 || _tam_datos == 0) return;
 
-void OCR::datos_entrenamiento(const base_de_datos_t &bd, const datos_t &datos) {
+    // Obtengo la media de los datos
+    unsigned int fils = _cant_datos;
+    unsigned int cols = _tam_datos;
+    _media = Matriz(cols, 1);
     
-    if (datos.size() == 0 || datos[0].size() == 0)
-        throw runtime_error("No hay datos para entrenar.");
-    
-    if (_tam_base_de_datos(bd) != datos.size())
-        throw runtime_error("La base de datos esta vacia.");
+    for (unsigned int j = 0; j < cols; ++j) {
+        double suma = 0;
+        for (auto it = bd.cbegin(); it != bd.cend(); ++it) {
+            unsigned int tam = it->second.size();
+            for (unsigned int k = 0; k < tam; ++k) suma += it->second[k][j];
+        }
+        _media(j) = suma / fils;
+    }
     
     _bd = bd;
-    _datos = datos;
     k_KNN(_k);
     alpha_PCA(_alpha);
 }
 
-void OCR::alpha_PCA(const unsigned int alpha) {
-    _alpha = alpha > _tam_datos() ? 0 : alpha;
+vector<OCR::clave_t> OCR::reconocer(const datos_t &datos) const {
     
-    if (_alpha == 0) return; // no hace falta hacer nada
+    base_de_datos_t bd;
+    datos_t &aux = bd[clave_t()];
+    const datos_t *p = &datos;
+    aux.swap(*const_cast<datos_t*>(p));
     
-    // Si la cantidad de componentes es mayor a la que ya tengo, reaplico PCA.
-    // Si no, dejo la cantidad de componentes necesarios.
-    if (_alpha > _cb.filas_real()) {
-        _aplicar_PCA();
-    } else {
-        _cb.enmascarar_filas(0, _alpha - 1);
-        _muestra.enmascarar_filas(0, _alpha - 1);
-    }
+    auto res = reconocer(bd);
+    
+    aux.swap(*const_cast<datos_t*>(p));
+    
+    return res.begin()->second;
 }
 
-vector<OCR::clave_t> OCR::reconocer(const datos_t &datos) const {
-    if (datos.size() == 0 || datos[0].size() == 0)
+map<OCR::clave_t, vector<OCR::clave_t>> OCR::reconocer(const base_de_datos_t &bd) const {
+    
+    if (cant_datos(bd) == 0 || tam_datos(bd) == 0)
         throw runtime_error("No hay datos para reconocer.");
     
-    Matriz A = _normalizar_datos(datos);
+    Matriz A = _normalizar_datos(bd);
     A = _alpha == 0 ? A : _cb * A;
     
-    unsigned int n = A.columnas();
-    vector<clave_t> clases(n);
-    for (unsigned int i = 0; i < n; ++i)
-        clases[i] = _KNN(_k, A, i);
+    map<clave_t, vector<clave_t>> res;
+    unsigned int i = 0;
     
-    return clases;
+    for (auto it = bd.cbegin(); it != bd.cend(); ++it) {
+        
+        auto &clase = res[it->first];
+        unsigned int tam = it->second.size();
+        
+        for (unsigned int k = 0; k < tam; ++k) {
+            clase.push_back(_KNN(_k, A, i));
+            ++i;
+        }
+    }
+    
+    return res;
 }
 
 
 // Funciones auxiliares
 
 void OCR::_aplicar_PCA() {
+    
+    // Si la cantidad de componentes es menor o igual a la que ya tengo dejo
+    // los componentes necesaria sin recalcular todo.
+    if (!_cb.vacia() && _alpha <= _cb.filas_real()) {
+        _cb.enmascarar_filas(0, _alpha);
+        _muestra.enmascarar_filas(0, _alpha);
+        return;
+    }
+    
     // Obtengo matriz de datos normalizados (los datos por columna)
-    _muestra = _normalizar_datos(_datos);
+    _muestra = _normalizar_datos(_bd);
 
+    // Si alpha es cero no aplico PCA
     if (_alpha == 0) return;
 
     // Obtengo matriz de covarianza
@@ -95,8 +115,9 @@ void OCR::_aplicar_PCA() {
     Matriz B = _cov;
     unsigned int cols = B.filas();
     _cb = Matriz(_alpha, cols);
+    
     for (unsigned int k = 0; k < _alpha; ++k) {
-        Matriz v = Matriz(); double a;
+        Matriz v; double a;
         while (!_metodo_de_la_potencia(B, _vector_random(cols), v, a)) {}
         for (unsigned int i = 0; i < cols; ++i) _cb(k,i) = v(i);
         _aplicar_deflacion(B, v, a);
@@ -106,15 +127,27 @@ void OCR::_aplicar_PCA() {
     _muestra = _cb * _muestra;
 }
 
-Matriz OCR::_normalizar_datos(const datos_t &datos) const {
-    unsigned int fils = datos.size();
-    unsigned int cols = datos[0].size();
+Matriz OCR::_normalizar_datos(const base_de_datos_t &bd) const {
+    
+    unsigned int fils = cant_datos(bd);
+    unsigned int cols = tam_datos(bd);
+    
     Matriz A = Matriz(cols, fils);
-    double m = sqrt(_cant_datos() - 1);
-    for (unsigned int i = 0; i < cols; ++i) {
-        for (unsigned int j = 0; j < fils; ++j)
-            A(i,j) = (datos[j][i] - _media(i)) / m;
+    double m = sqrt(_cant_datos - 1);
+    unsigned int i = 0; // indice de "fila" en bd
+    
+    for (auto it = bd.cbegin(); it != bd.cend(); ++it) {
+        auto &datos = it->second;
+        unsigned int tam = datos.size();
+        
+        for (unsigned int k = 0; k < tam; ++k) {
+            for (unsigned int j = 0; j < cols; ++j) {
+                A(j,i) = (datos[k][j] - _media(j)) / m;
+            }
+            ++i;
+        }
     }
+    
     return A;
 }
 
@@ -162,6 +195,7 @@ OCR::clave_t OCR::_KNN(const unsigned int k, const Matriz &A, const unsigned int
     cmp menor;
     vector<tupla> cola;
     
+    unsigned int indice_dato = 0;
     for (auto it = _bd.cbegin(); it != _bd.cend(); ++it) {
         
         unsigned int tam = it->second.size();
@@ -170,7 +204,7 @@ OCR::clave_t OCR::_KNN(const unsigned int k, const Matriz &A, const unsigned int
         for (unsigned int i = 0; i < tam; ++i) {
             
             unsigned int tam_cola = cola.size();
-            tupla t = make_pair(it->first, _distancia(it->second[i], A, col));
+            tupla t = make_pair(it->first, _distancia(indice_dato++, A, col));
             
             // Guardo t en la cola si hay menos de k elementos o si la distancia de t es menor
             // que la del elemento con mayor distancia
@@ -236,7 +270,7 @@ OCR::clave_t OCR::_KNN(const unsigned int k, const Matriz &A, const unsigned int
     return clave_con_vecinos_mas_cercanos->first;
 }
 
-double OCR::_distancia(const indice_t j, const Matriz &A, const unsigned int col) const {
+double OCR::_distancia(const unsigned int j, const Matriz &A, const unsigned int col) const {
     unsigned int n = A.filas();
     double suma = 0;
     for (unsigned int i = 0; i < n; ++i) suma += pow(_muestra(i,j) - A(i,col), 2);

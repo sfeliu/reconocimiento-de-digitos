@@ -31,8 +31,7 @@ int main(int argc, const char *argv[]) {
     timer.iniciar();
 
     OCR::base_de_datos_t bd_train;
-    OCR::datos_t datos_train;
-    leer_datos_train(arg_train.getValue().c_str(), bd_train, datos_train);
+    leer_datos_train(arg_train.getValue().c_str(), bd_train);
     
     cout << timer.tiempo() << "s" << endl;
     
@@ -54,7 +53,7 @@ int main(int argc, const char *argv[]) {
     timer.iniciar();
     
     // Inicializo OCR
-    OCR ocr(bd_train, datos_train, arg_alpha_PCA.getValue(), arg_k_KNN.getValue());
+    OCR ocr(bd_train, arg_alpha_PCA.getValue(), arg_k_KNN.getValue());
     
     cout << timer.tiempo() << "s" << endl;
     
@@ -64,7 +63,6 @@ int main(int argc, const char *argv[]) {
     vector<OCR::clave_t> resultados = ocr.reconocer(datos_test);
     
     cout << timer.tiempo() << "s" << endl;
-    
     
     // Escritura de resultados
     
