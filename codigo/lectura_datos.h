@@ -8,7 +8,7 @@
 
 using namespace std;
 
-void leer_datos_train(const char* ruta, OCR::base_de_datos_t &bd, OCR::datos_t &datos) {
+void leer_datos_train(const char* ruta, OCR::base_de_datos_t &bd) {
     
     // Abro el archivo de datos de entrenamiento
     ifstream archivo(ruta);
@@ -17,15 +17,14 @@ void leer_datos_train(const char* ruta, OCR::base_de_datos_t &bd, OCR::datos_t &
 
     // Leo los datos
     bd = OCR::base_de_datos_t();
-    datos = OCR::datos_t();
     while (!archivo.eof()) {
         // Obtengo la clave de la clase de la imagen
         OCR::clave_t clave;
         archivo >> clave;
         // Agrego el numero de fila a la base de datos
-        bd[clave].push_back((OCR::indice_t) datos.size());
+        auto &clase = bd[clave];
         // Agrego fila a la matriz
-        datos.push_back(OCR::dato_t());
+        clase.push_back(OCR::dato_t());
         // Leo el vector
         while (archivo.peek() == ',') {
             // Ignoro la coma
@@ -34,7 +33,7 @@ void leer_datos_train(const char* ruta, OCR::base_de_datos_t &bd, OCR::datos_t &
             unsigned int val;
             archivo >> val;
             // Agrego el valor a la matriz
-            datos.back().push_back(val);
+            clase.back().push_back(val);
         }
         archivo.ignore(numeric_limits<streamsize>::max(), '\n'); // descarto el salto de linea
         archivo.peek(); // esto levanta el flag de EOF si se termino el archivo
