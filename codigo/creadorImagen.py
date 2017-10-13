@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import pickle, sys
+import pickle, sys, re
 
 
 def get_accuracy(matrix, clase):
@@ -38,7 +38,7 @@ def get_F1_score(precision, recall):
 
 
 def levantar_info(filename, parametros):
-    file = 'data/Resultados/' + filename
+    file = 'cv/' + filename
     contenido = []
     for line in open(file):
         contenido.append(line.strip())
@@ -86,8 +86,7 @@ def crear_matriz_de_confusion(inferencias_por_clase, parameters):
     plt.clf()
     ax = fig.add_subplot(111)
     ax.set_aspect(1)
-    res = ax.imshow(np.array(norm_conf), cmap=plt.cm.Wistia,
-                    interpolation='nearest')
+    res = ax.imshow(np.array(norm_conf), interpolation='nearest')
 
     width, height = inferencias_por_clase.shape
 
@@ -112,33 +111,57 @@ def crear_matriz_de_confusion(inferencias_por_clase, parameters):
 
 def main(filename, crear_matriz):
     parametros = {
-        'alpha': '3',
-        'k': '4',
-        'K': '4'
+        'alpha': '20',
+        'k': '20',
+        'K': '2'
     }
     inferencias_por_clase = levantar_info(filename, parametros)
 
     inferencias_por_clase = np.array(inferencias_por_clase)
     if crear_matriz:
         crear_matriz_de_confusion(inferencias_por_clase, parametros)
+    
+    total_acuracy = 0
+    temp_acuracy = 0
+    total_precision = 0
+    temp_precision = 0
+    total_recall = 0
+    temp_recall = 0
+    total_f1 = 0
+    temp_f1 = 0
 
     data_por_clase = {}
     for clase in range(0, 10):
         data_por_clase[clase] = {}
         data_por_clase[clase]['accuracy'] = get_accuracy(inferencias_por_clase, clase)
+        temp_acuracy += data_por_clase[clase]['accuracy']
         data_por_clase[clase]['precision'] = get_precision(inferencias_por_clase, clase)
+        temp_precision += data_por_clase[clase]['precision']
         data_por_clase[clase]['recall'] = get_recall(inferencias_por_clase, clase)
+        temp_recall += data_por_clase[clase]['recall']
         data_por_clase[clase]['F1_score'] = get_F1_score(data_por_clase[clase]['precision'],
                                                          data_por_clase[clase]['recall'])
+        temp_f1 += data_por_clase[clase]['F1_score']
 
-    with open('data.pickle', 'rb') as handle:
-        data_por_experimento = pickle.load(handle)
 
-    data_por_experimento[filename] = data_por_clase
+    total_acuracy = temp_acuracy/10
+    total_precision = temp_precision/10
+    total_recall = temp_recall/10
+    total_f1 = temp_f1/10
+
+    print('Acuracy:' + str(total_acuracy))
+    print('presicion:' + str(total_precision))
+    print('recall:' + str(total_recall))
+    print('f1:' + str(total_f1))
+
+   # with open('data.pickle', 'rb') as handle:
+    #    data_por_experimento = pickle.load(handle)
+
+   # data_por_experimento[filename] = data_por_clase
     # data_por_experimento = {}
 
-    with open('data.pickle', 'wb') as handle:
-        pickle.dump(data_por_experimento, handle)
+    #with open('data.pickle', 'wb') as handle:
+     #   pickle.dump(data_por_experimento, handle)
 
 
 if __name__ == "__main__":
