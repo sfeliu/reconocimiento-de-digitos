@@ -117,7 +117,7 @@ Matriz Matriz::producto_por_traspuesta() const {
 }
 
 
-// Manipulacion matricial
+// Modificadores
 
 Matriz& Matriz::trasponer() {
     unsigned int fils = filas();
