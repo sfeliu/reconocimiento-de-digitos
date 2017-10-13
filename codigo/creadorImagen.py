@@ -2,7 +2,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pickle, sys, re
 
-
 def get_accuracy(matrix, clase):
     true_positive = matrix[clase, clase]
     fila = matrix[clase, :]
@@ -103,13 +102,14 @@ def crear_matriz_de_confusion(inferencias_por_clase, parameters):
     plt.xlabel('Predicciones', fontsize=18)
     plt.ylabel('Datos', fontsize=16)
     plt.suptitle(
-        'Matriz de confución con alpha=' + parameters['alpha'] + ' k=' + parameters['k'] + ' K=' + parameters['K'],
+        'Matriz de confucion con alpha=' + parameters['alpha'] + ' k=' + parameters['k'] + ' K=' + parameters['K'],
         fontsize=15)
     matrix_file = 'alpha_' + parameters['alpha'] + '_k_' + parameters['k'] + '_K_' + parameters['K'] + '.png'
     plt.savefig(matrix_file, format='png')
 
 
 def main(filename, crear_matriz):
+
     parametros = {
         'alpha': '20',
         'k': '20',
@@ -120,7 +120,7 @@ def main(filename, crear_matriz):
     inferencias_por_clase = np.array(inferencias_por_clase)
     if crear_matriz:
         crear_matriz_de_confusion(inferencias_por_clase, parametros)
-    
+
     total_acuracy = 0
     temp_acuracy = 0
     total_precision = 0
