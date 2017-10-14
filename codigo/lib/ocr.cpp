@@ -96,7 +96,7 @@ void OCR::_aplicar_PCA() {
     
     // Si la cantidad de componentes es menor o igual a la que ya tengo dejo
     // los componentes necesaria sin recalcular todo.
-    if (!_cb.vacia() && _alpha <= _cb.filas_real()) {
+    if (!_cb.vacia() && 0 < _alpha && _alpha <= _cb.filas_real()) {
         _cb.enmascarar_filas(0, _alpha);
         _muestra.enmascarar_filas(0, _alpha);
         return;
@@ -104,6 +104,7 @@ void OCR::_aplicar_PCA() {
     
     // Obtengo matriz de datos normalizados (los datos por columna)
     _muestra = _normalizar_datos(_bd);
+    _cb = Matriz();
 
     // Si alpha es cero no aplico PCA
     if (_alpha == 0) return;
