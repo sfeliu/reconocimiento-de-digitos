@@ -70,7 +70,6 @@ void KFold(const unsigned int k_KFold, OCR::base_de_datos_t &bd_train, const vec
 
         // Testeo OCR
         OCR ocr(bd_train, PCAs[0], KNNs[0]);
-        //printf("%lu\n", OCR::cant_datos(bd_test));
         for (unsigned int i = 0; i < tam_PCAs; ++i) {
             unsigned int alpha_PCA = PCAs[i];
             ocr.alpha_PCA(alpha_PCA);
@@ -83,7 +82,7 @@ void KFold(const unsigned int k_KFold, OCR::base_de_datos_t &bd_train, const vec
 
                 // Escribo resultados
                 for (auto it = res.begin(); it != res.end(); ++it) {
-                    printf("%c\n", it->first);
+                    
                     // Abro el archivo
                     char* ruta_salida = obtener_ruta(prefijo, k_KFold, alpha_PCA, k_KNN);
                     ofstream archivo_salida(ruta_salida, std::ios_base::app); // agrego, no sobreescribo
@@ -93,7 +92,6 @@ void KFold(const unsigned int k_KFold, OCR::base_de_datos_t &bd_train, const vec
                     // Escribo valores
                     OCR::clave_t clave = it->first;
                     auto &resultados = it->second;
-                    printf("%li\n", resultados.size());
                     unsigned int cant_elem = resultados.size();
 
                     for (unsigned int i = 0; i < cant_elem; ++i)
