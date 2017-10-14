@@ -2,6 +2,7 @@
 #include <fstream>
 #include <iostream>
 #include <vector>
+#include <random>
 #include <sstream>
 #include "lectura_datos.h"
 #include "lib/ocr.h"
@@ -69,20 +70,22 @@ void KFold(const unsigned int k_KFold, OCR::base_de_datos_t &bd_train, const vec
 
         // Testeo OCR
         OCR ocr(bd_train, PCAs[0], KNNs[0]);
-
+        //printf("%lu\n", OCR::cant_datos(bd_test));
         for (unsigned int i = 0; i < tam_PCAs; ++i) {
-            ocr.alpha_PCA(PCAs[i]);
+            unsigned int alpha_PCA = PCAs[i];
+            ocr.alpha_PCA(alpha_PCA);
 
             for (unsigned int j = 0; j < tam_KNNs; ++j) {
-                ocr.k_KNN(KNNs[j]);
+                unsigned int k_KNN = KNNs[j];
+                ocr.k_KNN(k_KNN);
 
                 map<OCR::clave_t, vector<OCR::clave_t>> res = ocr.reconocer(bd_test);
 
                 // Escribo resultados
                 for (auto it = res.begin(); it != res.end(); ++it) {
-
+                    printf("%c\n", it->first);
                     // Abro el archivo
-                    char* ruta_salida = obtener_ruta(prefijo, k_KFold, PCAs[i], KNNs[j]);
+                    char* ruta_salida = obtener_ruta(prefijo, k_KFold, alpha_PCA, k_KNN);
                     ofstream archivo_salida(ruta_salida, std::ios_base::app); // agrego, no sobreescribo
                     delete ruta_salida;
                     if (!archivo_salida.is_open()) throw runtime_error("No se puede escribir el archivo");
@@ -90,6 +93,7 @@ void KFold(const unsigned int k_KFold, OCR::base_de_datos_t &bd_train, const vec
                     // Escribo valores
                     OCR::clave_t clave = it->first;
                     auto &resultados = it->second;
+                    printf("%li\n", resultados.size());
                     unsigned int cant_elem = resultados.size();
 
                     for (unsigned int i = 0; i < cant_elem; ++i)
@@ -117,7 +121,7 @@ vector<unsigned int> leer_parametros(const char* ruta) {
     if (!archivo.is_open()) throw runtime_error("No se pudo abrir el archivo.");
 
     vector<unsigned int> paramas;
-    while (!archivo.eof()) {
+    while (isdigit(archivo.peek())) {
         unsigned int val;
         archivo >> val;
         paramas.push_back(val);
@@ -156,8 +160,8 @@ int main(int argc, const char *argv[]) {
     vector<unsigned int> KFolds = leer_parametros(ruta_KFolds.c_str());
     vector<unsigned int> PCAs = leer_parametros(ruta_PCAs.c_str());
     vector<unsigned int> KNNs = leer_parametros(ruta_KNNs.c_str());
-
-
+    
+    
     // Hago cross validation
     for (auto it = KFolds.begin(); it != KFolds.end(); ++it) {
         KFold(*it, bd_train, PCAs, KNNs, prefijo);
