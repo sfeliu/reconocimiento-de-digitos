@@ -3,7 +3,6 @@
 #include <vector>
 #include "lectura_datos.h"
 #include "lib/ocr.h"
-#include "lib/timer.h"
 #include "lib/tclap/CmdLine.h"
 
 using namespace std;
@@ -11,76 +10,65 @@ using namespace std;
 int main(int argc, const char *argv[]) {
     
     // Parseo argumentos
-    TCLAP::CmdLine cmd("Hace cross validation del OCR", ' ', "");
-    TCLAP::ValueArg<string> arg_test("t", "testing", "Ruta del archivo de testing", true, "", "string", cmd);
-    TCLAP::ValueArg<string> arg_train("e", "entrenamiento", "Ruta del archivo de entrenamiento", true, "", "string", cmd);
+    TCLAP::CmdLine cmd("Reconoce caracteres manuscritos", ' ', "");
+    TCLAP::ValueArg<string> arg_test("q", "test-set", "Ruta del archivo de testing", true, "", "string", cmd);
     TCLAP::ValueArg<string> arg_output("o", "output", "Ruta del archivo de salida", false, "resultados.csv", "string", cmd);
-    TCLAP::ValueArg<unsigned int> arg_k_KNN("k", "kNN", "k-KNN", true, 0, "unsigned int", cmd);
+    vector<unsigned int> allowed = {0, 1};
+    TCLAP::ValuesConstraint<unsigned> constrain(allowed);
+    TCLAP::ValueArg<unsigned int> arg_method("m", "method", "Metodo de ejecucion: 0 = KNN, 1 = PCA + KNN", true, 0, &constrain, cmd);
+    TCLAP::ValueArg<unsigned int> arg_k_KNN("k", "kNN", "k-KNN", false, 0, "unsigned int", cmd);
+    TCLAP::ValueArg<string> arg_train("i", "train-set", "Ruta del archivo de entrenamiento", false, "", "string", cmd);
     TCLAP::ValueArg<unsigned int> arg_alpha_PCA("a", "alpha", "alpha-PCA", true, 0, "unsigned int", cmd);
     cmd.parse(argc, argv);
     
     
-    // Inicializo timer
+    // Abro archivo de salida
+    ofstream archivo_resultados(arg_output.getValue());
+    if (!archivo_resultados.is_open()) throw runtime_error("No se puede escribir el archivo de salida.");
     
-    Timer timer = Timer();
-
 
     // Lectura de base de datos de entrenamiento
-
-    cout << "Leyendo base de datos de entrenamiento... " << flush;
-    timer.iniciar();
-
     OCR::base_de_datos_t bd_train;
     leer_datos_train(arg_train.getValue().c_str(), bd_train);
     
-    cout << timer.tiempo() << "s" << endl;
-    
     
     // Lectura de datos de testing
-
-    cout << "Leyendo datos de testing... " << flush;
-    timer.iniciar();
-
-    OCR::datos_t datos_test;
-    leer_datos_test(arg_test.getValue().c_str(), datos_test);
+    OCR::base_de_datos_t bd_test;
+    leer_datos_train(arg_test.getValue().c_str(), bd_test);
     
-    cout << timer.tiempo() << "s" << endl;
     
-
-    // Reconocimiento de caracter
+    // Reconozco caracteres
+    unsigned int alpha_PCA = arg_alpha_PCA.getValue();
+    unsigned int k_KNN = arg_k_KNN.getValue();
+    if (arg_method.getValue() == 0) alpha_PCA = 0;
     
-    cout << "Inicializando OCR... " << flush;
-    timer.iniciar();
+    OCR ocr(bd_train, alpha_PCA, k_KNN);
+    map<OCR::clave_t, vector<OCR::clave_t>> resultados = ocr.reconocer(bd_test);
     
-    // Inicializo OCR
-    OCR ocr(bd_train, arg_alpha_PCA.getValue(), arg_k_KNN.getValue());
     
-    cout << timer.tiempo() << "s" << endl;
-    
-    cout << "Reconociendo caracteres... " << flush;
-    timer.iniciar();
-    
-    vector<OCR::clave_t> resultados = ocr.reconocer(datos_test);
-    
-    cout << timer.tiempo() << "s" << endl;
-    
-    // Escritura de resultados
-    
-    cout << "Escribiendo resultados... " << flush;
-    timer.iniciar();
-    
-    ofstream archivo_resultados(arg_output.getValue());
+    // Escribo resultados
     archivo_resultados << "ImageId,Label" << endl;
-
-    unsigned int n = resultados.size();
-    for (unsigned int i = 0; i < n; ++i) {
-        archivo_resultados << i+1 << ',' << resultados[i] << endl;
+    
+    unsigned int correctos = 0;
+    unsigned int cant_datos = 0;
+    
+    for (auto it = resultados.begin(); it != resultados.end(); ++it) {
+        vector<OCR::clave_t> &res = it->second;
+        unsigned int tam = res.size();
+        
+        for (unsigned int i = 0; i < tam; ++i) {
+            archivo_resultados << i+1 << ',' << res[i] << endl;
+            ++cant_datos;
+            if (it->first == res[i]) ++correctos;
+        }
     }
     
     archivo_resultados.close();
+    double tasa_reconoc = correctos / cant_datos * 100;
     
-    cout << timer.tiempo() << "s" << endl;
-
-
+    printf("alpha_PCA,k_KNN,tasa_reconocimiento\n");
+    printf("%u,%u,%f\n", alpha_PCA, k_KNN, tasa_reconoc);
+    
+    
     return 0;
 }
