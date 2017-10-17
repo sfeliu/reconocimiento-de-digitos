@@ -1,0 +1,54 @@
+El desarrollado de este trabajo pretende hacer un algoritmo de clasificacion de
+aprendizaje supervisado, esté se puede dividir en dos partes: el entrenamiento
+de la base de datos y el reconocimiento del digito de una imágen.Con este
+objetivo, lo primero fue implementar el algoritmo knn para poder hacer una
+clasificacion de los datos y tener una primera impresion de como se comportaria
+el algoritmo knn. Dado el problema de la dimensionalidad del algoritmo knn , se
+considero hacer una reduccion de las dimension de los datos para hacer la
+clasificacion de los datos con un menor costo, siendo una algoritmo robusto y
+con la menor perdidad de informacion durante la reduccion. Dadas estas
+condiciones, usaremos PCA para poder hacer la reduccion de las dimensiones.  
+
+
+\section{Entrenamiento}
+
+\subsection{Algoritmo Knn}
+Dada una metrica definida para los datos, el algoritmo toma un conjunto
+elementos conformado por los k vecinos mas cercanos segun la metrica y toma la clase moda del conjunto como la clase del elemento. 
+
+\subsection{normalizacion de los datos}
+Los datos seran centrados en 0, para poder tener una mejor representacion de los
+datos y poner trabajar con los datos concervando la varianza y poder analizar
+los datos con PCA
+
+\subsection{Algoritmo PCA}
+Para el algoritmo PCA se utilizar dos algoritmos:
+1ro: Metodos de las potencias, el cual usa convergencia de las potencias de
+la matriz por un vector random al autovector y  autovalor(mayor en modulo a los
+demas autovalores)
+2do: Deflacion, usa la propoedad de que cuando se armar una matriz con el autovalor
+y la multiplicacion del autovector por su traspuesto y restamos esa matriz a la
+original, se esta cambiando el valor del autovalor asociado del autovector que
+ahora pasa a ser 0.
+Para tener una mejor representacion de los datos usaremos la matriz de
+covarianza de los datos y el algoritmo PCA dara sus componentes principales. 
+
+\subsection{Obtención de la Matriz de Covarianza}
+Primero se vectorizan los datos definiendo una matriz X, entonces la matriz de
+covarianza queda definida como $M_{x}$ = $\frac{1}{n-1}$ $X^{t}$ X, con lo cual
+M es simetrica y se puede formar una BON(Base Ortonormal de autovectores). Esto sirven
+para que el algoritmo PCA pueda trabajar con los datos conservando la misma varianza,y asi hallar los autovectores que al proyectar un dato sobre
+ellos concerven la mayor varianza.
+
+\section{Reconocimiento de dígitos}
+
+\subsection{Utilización de k-NN con PCA}
+
+Debemos vectorizar todo el dataset y cada uno de los
+datos a los que se les va aplicar knn, luego con los alpha autovectores
+obtenidos durante el entrenamiento, se aplica el cambio de base y se utiliza la
+metrica definida para esos datos y se hace la clasificacion. De aquí sabremos cuantos vectores pertenecen a cada clase y así saber con cual clase se encuentra mas similitud. En el caso de encontrar la misma cantidad de vectores de clases diferentes se buscara una forma de desambiguar. Nosotros en particular decidimos tomar la clase del vector mas cercano de las clases empatadas.
+
+Si todo esto se logro hacer correctamente obtendremos una predicción correcta
+del dígito que se encuentra en la imágen
+//falta explicar validacion: s 
