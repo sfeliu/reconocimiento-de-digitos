@@ -1,53 +1,43 @@
-El programa desarrollado se puede dividir en dos partes importantes: el entrenamiento de la base de datos y el reconocimiento del digito en una imágen.
+El programa desarrollado se puede dividir en dos partes principales: el entrenamiento de la base de datos y el reconocimiento de los dígitos.
 
 \section{Entrenamiento}
-En esta sección intentamos de transformar los datos de tal manera de obtener una reducción de tiempo de ejecución al intentar de reconocer los digitos. 
+En esta sección se intentan transformar los datos para obtener una reducción de tiempo de ejecución al realizar el reconocimiento de los digitos. 
 
-Para ello se utiliza el método de PCA aplicandolos a las imágenes de la base de entrenamiento que tengamos. Este método lo utilizaremos sobre la matriz de covarianza que se generara de las imagenes y nos entregara un cambio de base óptimo para remarcar las mauores diferencias entre imágenes.
+Para ello se aplica el método de PCA a las imágenes de la base de entrenamiento. La elección de componentes se realiza utilizando como criterio la matriz de covarianza de las imágenes, obteniendo así un cambio de base óptimo para anlizar las mayores diferencias entre las imágenes.
 
-\subsection{Obtención de la Matriz de Covarianza}
+\subsection{Matriz de covarianza}
 
-Lo que se quiere lograr al obtener la matriz de covarianza es obtener la distancia de la media de cada pixel en particular.
+Lo que se quiere lograr al obtener la matriz de covarianza es obtener la distancia de la media de cada píxel en particular.
 
-Para conseguir la matriz, vectorizamos todas las imágenes que tengamos para utilizar en el entrenamiento y las colocamos de tal manera que cada fila de esta matriz será una imágen.
+Para conseguir la matriz se vectorizan todas las imágenes de entrenamiento y se las coloca por fila en una matriz. De esta forma, las filas corresponderán a las imágenes de la base y las columnas a los píxeles de cada imagen.
 
-Luego se obtiene la media de cada columna y se le resta a estos mismos elementos, los cuales serian el mismo pixel para cada imágen. La matriz resultante la notaremos como X y nuestra matriz de covarianza será $M_{x}$ la cual se definira como $M_{x}$ = $\frac{1}{n-1}$ $X^{t}$ X
+Luego se obtiene la media de cada columna y se le resta este valor a cada fila. La matriz resultante la notaremos como $X$ y nuestra matriz de covarianza será $M_{X}$ la cual se definirá como $M_{X} = \frac{1}{n-1} X^{t} X$
 
 \subsection{Autovalores y autovectores}
 
-Una vez obtenida la matriz de covarianza queremos conseguir los autovalores mas significativos, porque estos tendrian asociados los autovectores que se utilizaran para hacer el cambio de base. 
+Una vez obtenida la matriz de covarianza queremos conseguir los autovalores más significativos, porque estos tendrían asociados los autovectores que se utilizarán para hacer el cambio de base. 
 
-Para encontrar estos autovalores se utiliza el método de la potencia, que al tender la cantidad de iteraciones a infinito, logra emerger el mayor autovalor y autocevtor de la matriz al que se lo aplica.
+Para encontrar estos autovalores se utiliza el método de la potencia, que al tender la cantidad de iteraciones a infinito, logra emerger el autovalor dominante y el autovector asociado de la matriz al que se lo aplica.
 
-Como este método solo te da el mayor autovalor y no el resto, debemos utilizar la deflación asi le \textit{quitamos} este y podemos proseguir en busca de los demas autovalores. Al mismo tiempo, sabemos que la matriz de covarianza sera de dimensión 784x784, podemos deducir que como máximo tendra 784 autovalores, lo cual nos hace preguntarnos si realmente es necesario obtener todos ellos.
+Como esto sólo obtiene el autovalor dominante y no el resto, debemos utilizar el método de deflación para "quitarle" el autovalor mencionado y poder obtener los demás.
 
-\subsection{Definimos el cambio de base}
+\subsection{Matriz de cambio de base}
 
-Habiendo decidido cuantos autovalores obtendremos del método de la potencia, colocaremos los autovectores asociados a estos autovalores en filas, formando una matriz de cambio de base, donde las filas mantendran el orden de obtención de los autovectores.
+Habiendo decidido cuántos autovalores obtendremos del método de la potencia, colocaremos los autovectores asociados a estos autovalores en filas, formando una matriz de cambio de base, donde las filas mantendrán el orden en el cual fueron obtenidos los autovectores, es decir, ordenado decrecientemente según la magnitud de los autovalores asociados.
 
-Por último llevamos a todas las imágenes de entrenamiento a esta base nueva, esperando a ser utilizada para reconocer las nuevas imágenes.
+Por último, se aplica este cambio de base a la base de entrenamiento.
 
 
 \section{Reconocimiento de dígitos}
 
-Ya teniendo la base de entrenamiento transformada lo único que nos queda es lograr encontrar la clase mas apta para la imágen que se querra reconocer. Para esto utilizaremos un algoritmo llamado k-NN vecinos mas cercános.
+\subsection{Cambio de base}
 
-\subsection{Transformar la nueva imágen}
+Para poder utilizar k-NN debemos aplicarle a las imágenes de a reconocer las mismas transformaciones que se le realizaron a la base de entrenamiento. Primero se las normalizará restándoles la media obtenida durante el entrenamiento y se las dividirá por $\sqrt{n - 1}$, siendo $n$ la cantidad de filas en $X$. Finalmente se le aplica la matriz de cambio de baso.
 
-Para poder utilizar k-NN debemos tener a todas las imágenes en la misma base, la cual optimizará este algoritmo.
+\subsection{k-NN}
 
-Las imágenes reconocidas ya las tendremos transformadas, por lo tanto debemos transformar a la nueva imágen.
+Para obtener la clase de las imágenes utilizaremos k-NN.
 
-Antes de transformarla se la \textit{normalizará} restandole el vector $\mu$ obtenida de la matriz X y se dividirá por $\sqrt{n - 1}$ siendo n la cantidad de filas en X. Luego se la podra hacer la transformación con la matriz de cambio de base, y estara lista para utilizar k-NN.
+Comenzaremos buscando la norma de la distancia euclídea entre la vectorización de la imagen a reconocer y cada uno de los vectores de la base de entrenamiento. Aquí se puede observar la razón de la optimización de recortar la dimensión de los vectores con PCA.
 
-\subsection{Utilización de k-NN}
-
-Finalmente, el momento de la verdad, desubrir a que clase pertenece la nueva imágen.
-
-Para ello utilizaremos k-NN con un k definido con anticipación, este k sera muy importante para el correcto funcionamiento del OCR.
-
-Comenzaremos buscando la norma de la diferencia entre nuestra nueva imágen y cada uno de los vectores de la base de entrenamiento, aquí se puede observar la razón a la optimización de recortar la dimensión de los vectores.
-
-Una vez obtenida todas estas diferencias se tomaran los k vectores con menor distancia. De aquí sabremos cuantos vectores pertenecen a cada clase y así saber con cual clase se encuntra mas similar. En el caso de encontrar la misma cantidad de vectores de clases diferentes se buscara una forma de desambiguar. Nosotros en particular decidimos tomar la clase del vector mas cercano de las clases empatadas.
-
-Si todo esto se logro hacer correctamente obtendremos una predicción correcta del dígito que se encuentra en la imágen
+Una vez obtenida todas las distancias se tomarán los k vectores más cercanos. De aquí se obtendrá la clase que tenga una mayor cantidad de vectores dentro de estos k más cercanos. En el caso de encontrar clases con la misma cantidad de vectores se compararán los elementos de cada una de ellas en orden de cercanía, para obtener así la clase que tenga al elemento más cercano.

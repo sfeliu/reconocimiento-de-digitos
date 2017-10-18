@@ -1,15 +1,14 @@
+El objetivo de este trabajo práctico es el desarrollo y evaluación de una herramienta de OCR (Optical Character Recognition) para el reconocimiento de dígitos manuscritos en imágenes.
 
-El objetivo de este trabajo práctico es el desarrollo y evaluación de una herramienta
-de OCR (Optical Character Recognition) para el reconocimiento de dıgitos manuscritos en
-imágenes.
+Para realizar el reconocimiento se utilizará como entrenamiento del programa una base de datos de imágenes ya etiquetadas con el dígito correcto. Las imágenes a reconocer serán comparadas con las de esta base de datos y se les asignará una clase ---un dígito--- usando el algoritmo de k-NN (k Nearest Neighbours).
 
-Para saber que digito estamos intentando de reconocer tendremos una base imágenes ya reconocidas en donde buscaremos las k imagenes mas parecidas a la original. Este algoritmo para las imagenes es muy costoso por lo que se utilizara una reducción de espacio con PCA.
+Dado que el gran tamaño de la base de entrenamiento hace al algoritmo de k-NN muy ineficiente, se hará uso de la técnica de PCA (Principal Component Analysis) para reducir el costo temporal del programa.
 
 \section{k-NN}
-k-NN es una algoritmo del cual se obtienen las k imágenes mas cercanas al comprar todas las imágenes vectorizadas con la nueva imágen sin clase. Al finalizar de compararlos con todos y haber obtenido k imágenes pertenecientes a cualquier clase, se decide con algún tipo de criterio de que clase es la nueva imágen, en este caso decidimos usar la clase que más aparesca entre aquellos k obtenidos.
+El algoritmo de k-NN consiste en obtener las $k$ imágenes de la base de entrenamiento más cercanas a la imagen a reconocer ---los $k$ vecinos más cercanos--- para luego asignarle una clase según algún criterio. En esta implementación se decidió elegir la clase a la cual pertenece la mayor cantidad de estas imágenes. En caso de haber más de una, se elige a aquella que tenga una imagen más cercana a la imagen a reconocer.
 
 
 \section{PCA}
-PCA es un metodo en el cual modificamos el vector imágen de tal manera que nos queden los componentes que mas nos importan al comienzo del vector. De esta manera se puede encontrar un elemento $\alpha$ que posea una \textit{importancia} relativamente inferior que la del próximo elemento, por lo tanto podemos decidir achicar la dimensión hasta el último elemento más relevante. 
+PCA es un método en el cual se proyectan las imágenes vectorizadas a una determinada base de tal manera que queden las componentes que aportan más información al comienzo del vector. Luego, en lugar de trabajar con todas las componentes, se puede considerar únicamente una cierta cantidad $\alpha$ de las primeras coordenadas descartando el resto ya que no poseen tanta información.
 
-Estos elementos serian autovalores de una matriz, en donde la importancia seria el tamaño en módulo del autovalor. Lo tomamos de esta manera porque los autovalores se obtienen de una matriz de covarianza, por lo tanto si hay una diferencia abrupta entre ellos podemos tomarlo como que a partir de ese punto la diferencia entre las coordenadas de las imágenes comienza a ser desechable.
+La base mencionada será la base de autovectores de la matriz de covarianza de los datos de entrenamiento, ordenados de forma decreciente con respecto a la magnitud de los autovalores asociados. Luego la "importancia" de las componentes se corresponde con la magnitud del autovalor correspondiente a esa coordenada.
