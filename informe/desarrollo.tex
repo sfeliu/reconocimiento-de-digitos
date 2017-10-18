@@ -40,7 +40,8 @@ M es simetrica y se puede formar una BON(Base Ortonormal de autovectores). Esto 
 para que el algoritmo PCA pueda trabajar con los datos conservando la misma varianza,y asi hallar los autovectores que al proyectar un dato sobre
 ellos concerven la mayor varianza.
 
-\section{Reconocimiento de dígitos}
+\subsection{Deflaccion}
+Dado que la matriz de covarianza es simetrica, entonces los autovectores son ortogonales de a pares. Al aplicar deflacion, se toma el autovector asociado al mayor autovalor y se le asocia el 0 como autovalor, preservando los demas autovectores con sus respectivos autovalores, con lo cual, se puede aplicar nuevamente el metodo de las potencias hasta obtener la cantidad de autovectores deseado para la proyeccion al espacio que maximiza la varianza.
 
 \subsection{Utilización de k-NN con PCA}
 
