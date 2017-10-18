@@ -1,31 +1,111 @@
+\section{Búsqueda de parámetros óptimos}
 
-\section{Busqueda del PCA y kNN óptimo}
+En esta sección diseñamos experimentos para encontrar parámetros óptimos de kNN y PCA de la herramienta de OCR implementado. Para poder hacer esto utilizamos el método de K-fold cross validation.
 
-En esta sección diseñamos experimentos para encontrar parametros óptimos  de kNN y PCA de la herramienta de OCR implementado. Para poder hacer esto utilizamos K-fold cross validation.
-Como el tiempo de computo de los algoritmos son altos primero hicimos una exploración manualmente con algunos parametros dispersos con el fin de acotar el espacio de busqueda. Las metricas que utilizamos para analizar que tan bien se reconocen los caracteres.
-
+Las métricas utilizadas para analizar la calidad de los resultados del programa fueron: accuracy, precision, recall y F1 score.
 
 
 \subsection{Hipótesis}
-Para el algoritmo de KNN, nuestra hipotesis es que para los valores mas bajos de k la cantidad de aciertos sera menor porque para caracteres similares una imagen puede tener algunos vecinos cercanos de otra clase. Para valores muy grandes de k se consideran demasiados digitos y en este caso toma mas importancia a la cantidad de apariciones de un caracter que la cercania de los miembros de su clase. Un ejemplo para ilustrar este comportamiento es cuando k toma su valor maximo, la cantidad total de datos de entrenamiento, la repuesta siempre sera la clase que tenga mas elementos en la base de entrenamiento.
+Para el algoritmo de KNN, nuestra hipótesis es que para los valores más bajos de $k$ la cantidad de aciertos será menor porque para caracteres similares una imagen puede tener algunos vecinos cercanos de otra clase. Luego, al tomar una poca cantidad de vecinos, se tomará a los que pertenecen a esta otra clase.
 
-Para los algoritmos del método PCA, nuestra hipotesis es que la calidad de nuestos resultados crece junto con el valor de alpha, aunque creemos que va a existir un punto b en el cual los resultados no van tener mejoras significativas. Creemos que esto se debe a que proyectamos el espacio original a otro generado por los autovectores asociados a los mayores autovalores asi se preserva la mayor cantidad de información en las primeras b columnas de la matriz transformada.
+Para valores muy grandes de $k$, en cambio, se consideran demasiados vecinos haciendoq ue tome más importancia la cantidad de apariciones de un caracter que la cercanía de los miembros de su clase a la imagen a reconocer. Un ejemplo extremo que muestra claramente este comportamiento es cuando $k$ toma su valor máximo ---la cantidad total de datos de entrenamiento: la repuesta será siempre la clase que tenga más elementos en la base de entrenamiento.
 
-\subsection{Con parametros dispersos}
+Para el método de PCA, nuestra hipótesis es que la calidad de los resultados crecerá junto con el valor del parámetro $\alpha$ ---la cantidad de componentes principales a analizar. Sin embargo, creemos que existe un punto a partir del cual los resultados no van tener mejoras significativas debido a que la información adicional que aportan estas componentes será muy poca.
 
-Como ya dicho anteriormente seleccionamos parámetros dispersos para poder encontrar los parametros optimos utilizando kNN con PCA, nuestra elección para los k y los alpha fueron [1,5,10,30,50,100], estos numeros los tomamos cada vez mas grandes por el simple hecho de que el costo de tiempo es mayor y ademas porque creemos que no se van a conseguir mejoras significativas o bien seran resultados negativos. Ademas el K lo tomaremos en 5 que nos pareció un buen punto de partida.
+\subsection{Exploración manual de parámetros}
 
-\subsubsection{Resultado}
+Como el tiempo de cómputo de los algoritmos son altos, primero se realizó una exploración manual con algunos parámetros dispersos con el fin de acotar el espacio de búsqueda.
 
+En esta exploración se pudo notar que para valores de $\alpha$ mayores a $100$ la calidad de los resultados presentabas pocas diferencias. Por esto se decidió realizar una primera búsqueda con $\alpha \in \{1,5,10,20,30,50,100\}$ para $k \in \{1,5,10,20,30,50,100\}$.
 
+Se pudo observar también en la exploración manual que la cantidad de folds utilizada en la validación cruzada no afectaba considerablemente los resultados obtenidos. Luego se limitó la validación al uso de 2, 5 y 10 folds.
 
+\subsection{Primera búsqueda}
 
-\subsubsection{Análisis de resultado}
-A partir de estos resultados podemos observar que sorprendentemente con k=1 fueron bastante positivos pero no los mejores, esto nos parecio destacable ya que pensabamos que iba a ser poco probable que el mas cercano, generalmente, sea el correcto. También se encuentra entendible que los valores mayores de k decrece su eficacia rapidamente viendo como razón la hipotesis dada.
+\subsubsection{Influencia de la cantidad de folds}
 
-Para los alpha se encontró que la hipotesis se cumple, ya que los primeros valores tienen resultados muy negativos y a partir de la variable 30 se encuentra este punto b del que hablabamos. Particularmente con el alpha mayor se encuentra un decrecimiento breve, a lo que lo asociamos con algunos problemas de redondeo y arrastres de errores.
+En primer lugar se puede observar que los resultados obtenidos o ---lo que es más importante--- la relación entre los mismos no es afectada significativamente por la cantidad de folds utilizados para la validación cruzada (figuras \ref{fig:cv_cmp_folds_accuracy}, \ref{fig:cv_cmp_folds_precision}, \ref{fig:cv_cmp_folds_recall}).
 
-Por lo tanto para el próximo experimento, el que será mas riguroso, tomaremos el intervalo de k=[2, ... , 7] y alpha=[25, ... , 40]. 
+Por esto, entonces, se limitará el análisis a los resultados obtenidos en la validación con 5 folds.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{graficos/cv_cmp_folds_accuracy.png}
+    \caption{Promedio de accuracy en función de alpha-PCA agrupado por k-KFold}
+    \label{fig:cv_cmp_folds_accuracy}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{graficos/cv_cmp_folds_precision.png}
+    \caption{Promedio de precision en función de alpha-PCA agrupado por k-KFold}
+    \label{fig:cv_cmp_folds_precision}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{graficos/cv_cmp_folds_recall.png}
+    \caption{Promedio de recall en función de alpha-PCA agrupado por k-KFold}
+    \label{fig:cv_cmp_folds_recall}
+\end{figure}
+
+\subsubsection{Comparación de parámetros}
+
+En cuanto al parámetro $\alpha$ se puede notar a primera vista en las figuras \ref{fig:cv1_accuracy}, \ref{fig:cv1_precision} y \ref{fig:cv1_recall} que, como se había planteado en la hipótesis, la calidad de los resultados crece junto con $\alpha$, pero existe un punto a partir del cual se estanca este crecimiento debido a que la información que aportan las componentes que se van agregando es muy poca. En este caso, dicho punto parece encontrarse alrededor de $\alpha = 20$. Se observa también que mejores resultados aparecen a partir de $\alpha = 10$.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{graficos/cv1_accuracy.png}
+    \caption{Accuracy en función de alpha-PCA para cada k-KNN}
+    \label{fig:cv1_accuracy}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{graficos/cv1_precision.png}
+    \caption{Precision en función de alpha-PCA para cada k-KNN}
+    \label{fig:cv1_precision}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{graficos/cv1_recall.png}
+    \caption{Recall en función de alpha-PCA para cada k-KNN}
+    \label{fig:cv1_recall}
+\end{figure}
+
+Mirando los gráficos más de cerca (figuras \ref{fig:cv1_accuracy_zoom}, \ref{fig:cv1_precision_zoom}, \ref{fig:cv1_recall_zoom}) se puede ver que los valores 1, 5 y 10 de k-KNN son los que tienen resultados superiores. Sorprendentemente, $k = 1$ es incluso mejor que $k = 10$. En la hipótesis se había mencionado que una imagen de una clase podía tener vecinos más cercanos de otra clase con similar escritura, por lo que valores muy pequeños de $k$ podrían seleccionar erróneamente a esta otra clase. Sin embargo, estos resultados sugieren que, para la base de entrenamiento usada, esta situación no se presenta muy frecuentemente.
+
+Por otra parte, se ve claramente que luego de pasar el valor óptimo de $k$ la calidad de los resultados decrece a medida que aumenta la cantidad de vecinos considerados, como se esperaba.
+
+Con respecto a $\alpha$ se observa que para los últimos valores medidos la calidad de los resultados empieza a decrecer, a diferencia de lo que se había dicho en la hipótesis. Una posible explicación que se pudo encontrar para este comportamiento considera el error inherente de la aritmética de números reales en una computadora:
+
+El algoritmo de PCA obtiene de la matriz de covarianza los autovectores necesarios para determinar el cambio de base necesario. Para esto utiliza el método de la potencia, el cual realiza una serie de operaciones aritméticas de matrices por una cantidad determinada de iteraciones, introduciendo en cada iteración un error que se arrastra a las iteraciones siguientes. Luego de obtener cada autovector es necesario aplicar deflación para poder hallar el siguiente. En este procedimiento se utilizan este autovalor y autovector hallados. Esto implica que el cómputo de cada autovector arrastra los errores del cómputo de todos los autovectores anteriores. Luego, a medida que crece el valor de $\alpha$ este error se hace cada vez mayor, distorsionando cada vez más la información de las imágenes, lo que resulta en un decrecimiento de la calidad de los resultados.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{graficos/cv1_accuracy_zoom.png}
+    \caption{Accuracy en función de alpha-PCA para cada k-KNN}
+    \label{fig:cv1_accuracy_zoom}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{graficos/cv1_precision_zoom.png}
+    \caption{Precision en función de alpha-PCA para cada k-KNN}
+    \label{fig:cv1_precision_zoom}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{graficos/cv1_recall_zoom.png}
+    \caption{Recall en función de alpha-PCA para cada k-KNN}
+    \label{fig:cv1_recall_zoom}
+\end{figure}
+
+Con esta primera búsqueda se puede concluir entonces que los valores óptimos de alpha-PCA se encuentran entre 20 y 50, y los de k-KNN entre 1 y 10. Luego se realiza una segunda búsqueda más granular en estos rangos.
+
+\subsection{Segunda búsqueda}
 
 \subsection{Tomando mas rigurosidad}
 
