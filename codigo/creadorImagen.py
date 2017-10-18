@@ -234,4 +234,3 @@ if __name__ == "__main__":
             crear_matriz = False
 
         main(filename, crear_matriz)
-    main('cv_f5_a20_k20.csv', False)
