@@ -202,10 +202,10 @@ def main(filename, crear_matriz):
     data_total[number_f][number_a][number_k]['average']['recall'] = total_recall
     data_total[number_f][number_a][number_k]['average']['F1_score'] = total_f1
 
-    print('Acuracy:' + str(total_acuracy))
-    print('presicion:' + str(total_precision))
-    print('recall:' + str(total_recall))
-    print('f1:' + str(total_f1))
+    print('Accuracy:' + str(total_acuracy))
+    print('Precision:' + str(total_precision))
+    print('Recall:' + str(total_recall))
+    print('F1 Score:' + str(total_f1))
 
     guardar_diccionario(data_total)
 

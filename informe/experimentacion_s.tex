@@ -1,0 +1,5 @@
+Para la experimentación debemos utilizar solo una parte de nuestra base de entrenamiento, así poder saber cuales son nuestros errores y donde suelen encontrarse.
+
+Por lo tanto se utilizará la técnica de K-Fold cross validation, que basicamente es dividir el conjunto total de nuestros datos en K subconjuntos, de los cuales se usaran K-1 subconjuntos para entrenamiento y el subconjunto restante sera el de validación. Esto se devera hacer K veces cambiando el subconjunto de validación por uno de entrenamiento, sin repetir la utilización de ellos.
+
+De esta manera se obtendran los valores promedios de efectividad para cada combinación distinta de parametros.
