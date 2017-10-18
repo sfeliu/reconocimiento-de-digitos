@@ -8,9 +8,26 @@
 
 using namespace std;
 
+unsigned int leer_cant_cols(const char* ruta) {
+    
+    // Abro el archivo
+    ifstream archivo(ruta);
+    if (!archivo.is_open()) throw runtime_error("No se pudo leer el archivo");
+    
+    // Cuento cantidad de columnas
+    unsigned int cuenta = 0;
+    while (archivo.peek() != '\n') {
+        if (archivo.peek() == ',') cuenta++;
+        archivo.ignore();
+    }
+    archivo.close();
+    
+    return ++cuenta;
+}
+
 void leer_datos_train(const char* ruta, OCR::base_de_datos_t &bd) {
     
-    // Abro el archivo de datos de entrenamiento
+    // Abro el archivo
     ifstream archivo(ruta);
     if (!archivo.is_open()) throw runtime_error("No se pudo leer el archivo");
     archivo.ignore(numeric_limits<streamsize>::max(), '\n'); // descarto cabecera
@@ -44,7 +61,7 @@ void leer_datos_train(const char* ruta, OCR::base_de_datos_t &bd) {
 
 void leer_datos_test(const char* ruta, OCR::datos_t &datos) {
     
-    // Abro el archivo de datos de testing
+    // Abro el archivo
     ifstream archivo(ruta);
     if (!archivo.is_open()) throw runtime_error("No se pudo leer el archivo");
     archivo.ignore(numeric_limits<streamsize>::max(), '\n'); // descarto cabecera
