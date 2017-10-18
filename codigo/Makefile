@@ -1,7 +1,7 @@
 CC=g++
 CFLAGS= -std=c++11 -Wall -O3
 
-all: main.bin cross_validation.bin kaggle.bin
+all: clean main.bin cross_validation.bin kaggle.bin
 	
 main.bin: main.cpp matriz.o ocr.o
 	$(CC) $(CFLAGS) $^ -o $@
