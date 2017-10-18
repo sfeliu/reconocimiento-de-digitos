@@ -1,4 +1,4 @@
-import subprocess, os
+import subprocess, os, re
 
 
 for file in os.listdir('cv/'):
