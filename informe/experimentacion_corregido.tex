@@ -28,21 +28,21 @@ En primer lugar se puede observar que los resultados obtenidos o ---lo que es m�
 
 Por esto, entonces, se limitará el análisis a los resultados obtenidos en la validación con 5 folds.
 
-\begin{figure}
+\begin{figure}[h]
     \centering
     \includegraphics[width=\textwidth]{graficos/cv_cmp_folds_accuracy.png}
     \caption{Promedio de accuracy en función de alpha-PCA agrupado por k-KFold}
     \label{fig:cv_cmp_folds_accuracy}
 \end{figure}
 
-\begin{figure}
+\begin{figure}[h]
     \centering
     \includegraphics[width=\textwidth]{graficos/cv_cmp_folds_precision.png}
     \caption{Promedio de precision en función de alpha-PCA agrupado por k-KFold}
     \label{fig:cv_cmp_folds_precision}
 \end{figure}
 
-\begin{figure}
+\begin{figure}[H]
     \centering
     \includegraphics[width=\textwidth]{graficos/cv_cmp_folds_recall.png}
     \caption{Promedio de recall en función de alpha-PCA agrupado por k-KFold}
@@ -53,21 +53,21 @@ Por esto, entonces, se limitará el análisis a los resultados obtenidos en la v
 
 En cuanto al parámetro $\alpha$ se puede notar a primera vista en las figuras \ref{fig:cv1_accuracy}, \ref{fig:cv1_precision} y \ref{fig:cv1_recall} que, como se había planteado en la hipótesis, la calidad de los resultados crece junto con $\alpha$, pero existe un punto a partir del cual se estanca este crecimiento debido a que la información que aportan las componentes que se van agregando es muy poca. En este caso, dicho punto parece encontrarse alrededor de $\alpha = 20$. Se observa también que mejores resultados aparecen a partir de $\alpha = 10$.
 
-\begin{figure}
+\begin{figure}[h]
     \centering
     \includegraphics[width=\textwidth]{graficos/cv1_accuracy.png}
     \caption{Accuracy en función de alpha-PCA para cada k-KNN}
     \label{fig:cv1_accuracy}
 \end{figure}
 
-\begin{figure}
+\begin{figure}[h]
     \centering
     \includegraphics[width=\textwidth]{graficos/cv1_precision.png}
     \caption{Precision en función de alpha-PCA para cada k-KNN}
     \label{fig:cv1_precision}
 \end{figure}
 
-\begin{figure}
+\begin{figure}[h]
     \centering
     \includegraphics[width=\textwidth]{graficos/cv1_recall.png}
     \caption{Recall en función de alpha-PCA para cada k-KNN}
@@ -82,62 +82,68 @@ Con respecto a $\alpha$ se observa que para los últimos valores medidos la cali
 
 El algoritmo de PCA obtiene de la matriz de covarianza los autovectores necesarios para determinar el cambio de base necesario. Para esto utiliza el método de la potencia, el cual realiza una serie de operaciones aritméticas de matrices por una cantidad determinada de iteraciones, introduciendo en cada iteración un error que se arrastra a las iteraciones siguientes. Luego de obtener cada autovector es necesario aplicar deflación para poder hallar el siguiente. En este procedimiento se utilizan este autovalor y autovector hallados. Esto implica que el cómputo de cada autovector arrastra los errores del cómputo de todos los autovectores anteriores. Luego, a medida que crece el valor de $\alpha$ este error se hace cada vez mayor, distorsionando cada vez más la información de las imágenes, lo que resulta en un decrecimiento de la calidad de los resultados.
 
-\begin{figure}
+\begin{figure}[h]
     \centering
     \includegraphics[width=\textwidth]{graficos/cv1_accuracy_zoom.png}
     \caption{Accuracy en función de alpha-PCA para cada k-KNN}
     \label{fig:cv1_accuracy_zoom}
 \end{figure}
 
-\begin{figure}
+\begin{figure}[h]
     \centering
     \includegraphics[width=\textwidth]{graficos/cv1_precision_zoom.png}
     \caption{Precision en función de alpha-PCA para cada k-KNN}
     \label{fig:cv1_precision_zoom}
 \end{figure}
 
-\begin{figure}
+\begin{figure}[H]
     \centering
     \includegraphics[width=\textwidth]{graficos/cv1_recall_zoom.png}
     \caption{Recall en función de alpha-PCA para cada k-KNN}
     \label{fig:cv1_recall_zoom}
 \end{figure}
 
-Con esta primera búsqueda se puede concluir entonces que los valores óptimos de alpha-PCA se encuentran entre 20 y 50, y los de k-KNN entre 1 y 10. Luego se realiza una segunda búsqueda más granular en estos rangos.
+Con esta primera búsqueda se puede concluir entonces que los valores óptimos de alpha-PCA se encuentran entre 20 y 100, y los de k-KNN entre 1 y 10. Luego se realiza una segunda búsqueda más granular en estos rangos.
 
 \subsection{Segunda búsqueda}
 
-\subsection{Tomando mas rigurosidad}
+En esta segunda búsqueda se realizaron mediciones para alpha-PCA $20 \leq \alpha \leq 70$ y k-KNN $2 \leq \alpha \leq 8$.
 
-\subsubsection{Resultados}
+\section{Tamaño de la base de entrenamiento}
 
+El objetivo de esta sección es analizar la relación entre el tamaño de la base de entrenamiento y el k-KNN. Para ello se realiza cross validation con 5 folds de algunos valores de k-KNN para distintas cantidades de imágenes de entrenamiento.
 
-\subsubsection{Análisis de resultados}
+En este experimento se toman un total de 5000, 10000, 20000, 30000, 42000 imágenes de entrenamiento en forma aleatoria, manteniendo la misma cantidad para cada clase, y para cada una de estas cantidades se realiza cross validation con k-KNN igual a 1, 5, 10, 20, 50, 75 y 100.
 
-
-
-\section{Variando tamaño del set de entrenamiento}
-
-En esta parte probaremos distintos k para distintos tamaños de set de entrenamiento, para poder observar si se encuentra alguna diferencia entre los tamaños y su k en kNN.
-Para poder ver esto, tomamos la misma cantidad de imágenes de cada clase aleatoriamente.  Los tamaños elegidos del set de entrenamiento total fueron [5000, 10000, 20000, 30000, 42000], la variable $\alpha$ la mantuvimos como la optima que se obtuvo en el experimento anterior, para k se utilizo los siguientes parametros [1, 5, 10, 20, 50, 75, 100] y el K de K-fold lo mantuvimos en 5.
+El parámetro alpha se mantuvo constante al valor óptimo encontrado en la sección anterior.
 
 \subsection{Hipótesis}
 
-Nuestra hipótesis sera que a medida que el tamaño del set de entrenamiento decrece y mientras el k crece, los resultados decrecerán estrepitamente. En primer lugar si el k crece, como fue demostrado en el experimento anterior, veremos disminuciones en la eficacia. En segundo lugar, mientras el set de entrenamiento se achica, se tendrán menos datos para entrenar y el algoritmo de kNN tomara muchos valores, lo cual terminara resultando en una mala predicción.
+Se sabe de los experimentos anteriores que la calidad de los resultados es creciente para los primeros valores de k-KNN pero decrece a medida que siguen aumentando. Nuestra hipótesis es que se verá este comportamiento para todos los tamaños de la base de datos, pero que el decrecimiento será más pronunciado ---la pendiente tendrá una mayor magnitud--- a medida que decrece la cantidad de imágenes de entrenamiento. Esto se debe a que un valor dado de k-KNN conforma una mayor proporción en relación a la cantidad total de imágenes para tamaños pequeños que para los más grandes. Por ejemplo, un k-KNN igual a 100 constituye un $2.50\%$ de las imágenes para una base de 5000 imágenes, pero conforma sólo un $0.30\%$ de una de 42000 elementos. Esto implica que el impacto de un k-KNN malo será más grande para bases más chicas.
 
 \subsection{Resultados}
 
+En las figuras \ref{fig:distintos_tamanos_accuracy} y \ref{fig:distintos_tamanos_f1score} se puede ver que se cumple la hipótesis planteada ya que tanto el accuracy como el F1 score presentan un crecimiento para los valores más chicos de k-KNN pero luego decrecen, con una pendiente que crece en magnitud a medida que disminuye el tamaño de la base de entrenamiento.
 
-\begin{center}
-   \includegraphics[scale=0.6]{graficos/Accuracy_distintos_tamanos.png}
-   \label{Fig. 2}
-\end{center}
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=\textwidth]{graficos/Accuracy_distintos_tamanos.png}
+	\caption{Accuracy en función de k-KNN para distintos tamaños de base}
+	\label{fig:distintos_tamanos_accuracy}
+\end{figure}
 
-\begin{center}
-   \includegraphics[scale=0.6]{graficos/F1_score_distintos_tamanos.png}
-   \label{Fig. 1}
-\end{center}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{graficos/F1_score_distintos_tamanos.png}
+	\caption{F1 score en función de k-KNN para distintos tamaños de base}
+	\label{fig:distintos_tamanos_f1score}
+\end{figure}
 
-\subsection{Análisis de los Resultados}
 
-A partir de este resultado podemos reafirmar la hipótesis del experimento anterior y se pude decir que se cumplió con lo esperado, ya que al disminuir la cantidad de imágenes de entrenamiento, tanto el accuracy como el f1 score bajan. Tambien se observa que con con k muy altos, para el caso de 5000 imágenes, el porcentaje baja linealmente, lo cual cumple con lo que decíamos.
+\section{Tiempo de ejecución}
+
+En esta parte se hace un análisis del tiempo de ejecución del programa en función de los parámetros k-KNN y alpha-PCA.
+
+Con respecto a k-KNN se espera que el tiempo de ejecución tenga una relación logarítmica con respecto a su valor. Esto se debe a que en nuestra implementación los vecinos más cercanos se guardan y se actualizan en una estructura de heap, cuyo costo de inserción y borrado es logarítmico en función de la cantidad de elementos que almacena ---en este caso, a lo sumo $k$.
+
+En cuanto a alpha-PCA la hipótesis es que afectará linealmente el tiempo de ejecución. En primer lugar, este parámetro determina la cantidad de veces que se repetirán el método de la potencia y la deflación. Por otra parte, $\alpha$ es la cantidad de filas que tendrá la matriz de cambio de base, por lo que afecta en forma lineal las operaciones de multiplicación matricial. Finalmente, a la hora de hacer KNN, $\alpha$ es la cantidad de componentes que se deberá considerar para obtener la distancia entre dos imágenes, por lo cual la complejidad de este algoritmo también es lineal en función de dicho parámetro.
