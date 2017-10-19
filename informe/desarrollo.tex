@@ -25,27 +25,34 @@ Los datos seran centrados en 0, para poder tener una mejor representacion de los
 datos y poner trabajar con los datos concervando la varianza y poder analizar
 los datos con PCA
 
-\subsection{Algoritmo PCA}
-Para el algoritmo PCA se utilizar dos algoritmos:
-1ro: Metodos de las potencias, el cual usa convergencia de las potencias de
-la matriz por un vector random al autovector y  autovalor(mayor en modulo a los
-demas autovalores)
-2do: Deflacion, usa la propoedad de que cuando se armar una matriz con el autovalor
-y la multiplicacion del autovector por su traspuesto y restamos esa matriz a la
-original, se esta cambiando el valor del autovalor asociado del autovector que
-ahora pasa a ser 0.
-Para tener una mejor representacion de los datos usaremos la matriz de
-covarianza de los datos y el algoritmo PCA dara sus componentes principales. 
-
 \subsection{Obtención de la Matriz de Covarianza}
 Primero se vectorizan los datos definiendo una matriz X, entonces la matriz de
 covarianza queda definida como $M_{x}$ = $\frac{1}{n-1}$ $X^{t}$ X, con lo cual
-M es simetrica y se puede formar una BON(Base Ortonormal de autovectores). Esto sirven
+M es simetrica y se puede formar una BON(Base Ortonormal) de autovectores. Esto sirven
 para que el algoritmo PCA pueda trabajar con los datos conservando la misma varianza,y asi hallar los autovectores que al proyectar un dato sobre
 ellos concerven la mayor varianza.
 
-\subsection{Deflaccion}
-Dado que la matriz de covarianza es simetrica, entonces los autovectores son ortogonales de a pares. Al aplicar deflacion, se toma el autovector asociado al mayor autovalor y se le asocia el 0 como autovalor, preservando los demas autovectores con sus respectivos autovalores, con lo cual, se puede aplicar nuevamente el metodo de las potencias hasta obtener la cantidad de autovectores deseado para la proyeccion al espacio que maximiza la varianza.
+\subsection{Algoritmo PCA}
+\begin{enumerate}
+Para el algoritmo PCA se utilizaran el metodo de las potencias y deflacion. 
+\item usa convergencia de las potencias de la matriz por un vector random al autovector y  autovalor(mayor en modulo a los demas autovalores)
+\item Dado que la matriz de covarianza es simetrica, entonces los autovectores son ortogonales de a pares. Al aplicar deflacion, se toma el autovector asociado al mayor autovalor y se le asocia el 0 como autovalor, preservando los demas autovectores con sus respectivos autovalores, con lo cual, se puede aplicar nuevamente el metodo de las potencias hasta obtener la cantidad de autovectores deseado para la proyeccion al espacio que maximiza la varianza.
+
+\end{enumerate}
+%Para el algoritmo PCA se utilizaran dos algoritmos: 
+%1ro: Metodos de las potencias, el cual usa convergencia de las potencias de
+%la matriz por un vector random al autovector y  autovalor(mayor en modulo a los
+%demas autovalores)
+%2do: Deflacion, usa la propoedad de que cuando se armar una matriz con el autovalor
+%y la multiplicacion del autovector por su traspuesto y restamos esa matriz a la
+%original, se esta cambiando el valor del autovalor asociado del autovector que
+%ahora pasa a ser 0.
+%Para tener una mejor representacion de los datos usaremos la matriz de
+%covarianza de los datos y el algoritmo PCA dara sus componentes principales. 
+
+
+%\subsection{Deflaccion}
+%Dado que la matriz de covarianza es simetrica, entonces los autovectores son ortogonales de a pares. Al aplicar deflacion, se toma el autovector asociado al mayor autovalor y se le asocia el 0 como autovalor, preservando los demas autovectores con sus respectivos autovalores, con lo cual, se puede aplicar nuevamente el metodo de las potencias hasta obtener la cantidad de autovectores deseado para la proyeccion al espacio que maximiza la varianza.
 
 \subsection{Utilización de k-NN con PCA}
 
