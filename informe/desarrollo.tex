@@ -1,13 +1,6 @@
-El desarrollado de este trabajo pretende hacer un algoritmo de clasificación de
-aprendizaje supervisado, esté se puede dividir en dos partes: el entrenamiento
-de la base de datos y el reconocimiento del dígito de una imagen.Con este
-objetivo, lo primero fue implementar el algoritmo knn para poder hacer una
-clasificación de los datos y tener una primera impresión de como se comportaria
-el algoritmo kNN. Dado el problema de la dimensionalidad del algoritmo kNN , se
-considero hacer una reducción de las dimensóon de los datos para hacer la
-clasificación de los datos con un menor costo, siendo una algoritmo robusto y
-con la menor perdidad de información durante la reducción. Dadas estas
-condiciones, usaremos PCA para poder hacer la reducción de las dimensiones.  
+El desarrollado de este trabajo pretende hacer un algoritmo de clasificación de aprendizaje supervisado, esté se puede dividir en dos partes: el entrenamiento de la base de datos y el reconocimiento del dígito de una imagen. \par 
+\indent Con este objetivo, lo primero fue implementar el algoritmo knn para poder hacer una clasificación de los datos y tener una primera impresión de como se comportaria el algoritmo kNN. \par
+\indent Dado el problema de la dimensionalidad del algoritmo kNN , se considero hacer una reducción de las dimensóon de los datos para hacer la clasificación de los datos con un menor costo, siendo una algoritmo robusto y con la menor perdidad de información durante la reducción. Dadas estas condiciones, usaremos PCA para poder hacer la reducción de las dimensiones. \par
 
 
 \section{Entrenamiento}
@@ -26,14 +19,10 @@ datos y poder trabajar con los datos concervando la varianza, para luego poder a
 los datos con PCA
 
 \subsection{Obtención de la Matriz de Covarianza}
-Primero se vectorizan los datos definiendo una matriz X, entonces la matriz de
-covarianza queda definida como $M_{x}$ = $\frac{1}{n-1}$ $X^{t}$ X, con lo cual
-M es simétrica y se puede formar una BON(Base Ortonormal) de autovectores. Esto sirven
-para que el algoritmo PCA pueda trabajar con los datos conservando la misma varianza,y asi hallar los autovectores que al proyectar un dato sobre
-ellos concerven la mayor varianza.
+Primero se vectorizan los datos definiendo una matriz X, entonces la matriz de covarianza queda definida como $M_{x}$ = $\frac{1}{n-1}$ $X^{t}$ X, con lo cual M es simétrica y se puede formar una BON(Base Ortonormal) de autovectores. Esto sirven para que el algoritmo PCA pueda trabajar con los datos conservando la misma varianza,y asi hallar los autovectores que al proyectar un dato sobre ellos concerven la mayor varianza.
 
-\subsection{Algoritmo PCA}
-Para el algoritmo PCA se utilizaran el método de las potencias y deflación. 
+\subsection{PCA}
+Para el procedimiento PCA se utilizaran el método de las potencias y deflación. 
 \begin{enumerate}
 \item El método de la potencia lo utilizamos para obtener el autovector con el mayor autovalor asociado ---comparandolo al resto de los autovalores en módulo. La diferencia al método visto en el $libro^{1}$, es que como no tenemos tiempo infinito para correr tomamos el criterio de deje de iterar al momento que el autovalor obtenido en $t_{i}$ tenga una diferencia menor a un $\epsilon$ con respecto al autovalor obtenido en $t_{i-1}$, con $\epsilon$ muy pequeño.
 \item Dado que la matriz de covarianza es simétrica, entonces los autovectores son ortogonales de a pares. Al aplicar deflación, se toma el autovector asociado al mayor autovalor y se le asocia el 0 como autovalor, preservando los demas autovectores con sus respectivos autovalores, con lo cual, se puede aplicar nuevamente el método de las potencias hasta obtener la cantidad de autovectores deseado para la proyección al espacio que maximiza la varianza.
@@ -56,5 +45,7 @@ Para el algoritmo PCA se utilizaran el método de las potencias y deflación.
 
 \subsection{Utilización de k-NN con PCA}
 
-Antes de poder utilizar la herramienta de OCR que implementamos tenemos que decidir el tamano de los parametros $\alpha$ y k que vamos a utilizar. El parametro k nos dice el tamno de la vecindad que concidera el algoritmo kNN y $\alpha$ nos dice cuantos valores principales utilizar cuando aplicamos PCA.
-	El algoritmo PCA primero calcula la matriz de covarianza de los datos de entrenamiento y despues calcula y forma una matriz V con los primeros alpha autovectores(los componentes principales) de esta matriz utilizando el metodo de la potencia y el algoritmo de deflacion. Por ultimo se vectorizan las imagenes de los datasets test y entrenamiento para despues aplicar el cambio de base tc($X_{1}$)=$X_{1}$*V y tc($X_{2}$)=$X_{2}$*V, donde $X_{1}$ y $X_{2}$ son las matrices que tiene como filas las imagenes de los datasets train y test respectivamente. Una vez finalizado el proceso PCA se aplica el algoritmo kNN sobre  tc($X_{1}$) y tc($X_{2}$). La idea de hacer todo el proceso de PCA es encontrar un $\alpha$ optimo tal que nos deje minimizar el tamano de nustros datasets con fines de mejorar el tiempo de computo sin perder informacion.
+Antes de poder utilizar la herramienta de OCR que implementamos tenemos que decidir el tamano de los parametros $\alpha$ y k que vamos a utilizar. El parametro k nos dice el tamno de la vecindad que concidera el algoritmo kNN y $\alpha$ nos dice cuantos valores principales utilizar cuando aplicamos PCA. \par
+\indent El procedimiento PCA primero calcula la matriz de covarianza de los datos de entrenamiento y despues calcula y forma una matriz V con los primeros alpha autovectores(asociados a los componentes principales) de esta matriz utilizando el metodo de la potencia y el algoritmo de deflacion. \par
+\indent Por ultimo se vectorizan las imagenes de los datasets test y entrenamiento para despues aplicar el cambio de base tc($X_{1}$)=$X_{1}$*V y tc($X_{2}$)=$X_{2}$*V, donde $X_{1}$ y $X_{2}$ son las matrices que tiene como filas las imagenes de los datasets train y test respectivamente. \par
+\indent Una vez finalizado el proceso PCA se aplica el algoritmo kNN sobre  tc($X_{1}$) y tc($X_{2}$). La idea de hacer todo el procedimiento de PCA es encontrar un $\alpha$ optimo tal que nos deje minimizar el tamano de nustros datasets con fines de mejorar el tiempo de computo sin perder informacion.\par
