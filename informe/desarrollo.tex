@@ -1,42 +1,42 @@
-El desarrollado de este trabajo pretende hacer un algoritmo de clasificacion de
+El desarrollado de este trabajo pretende hacer un algoritmo de clasificación de
 aprendizaje supervisado, esté se puede dividir en dos partes: el entrenamiento
-de la base de datos y el reconocimiento del digito de una imágen.Con este
+de la base de datos y el reconocimiento del dígito de una imagen.Con este
 objetivo, lo primero fue implementar el algoritmo knn para poder hacer una
-clasificacion de los datos y tener una primera impresion de como se comportaria
-el algoritmo knn. Dado el problema de la dimensionalidad del algoritmo knn , se
-considero hacer una reduccion de las dimension de los datos para hacer la
-clasificacion de los datos con un menor costo, siendo una algoritmo robusto y
-con la menor perdidad de informacion durante la reduccion. Dadas estas
-condiciones, usaremos PCA para poder hacer la reduccion de las dimensiones.  
+clasificación de los datos y tener una primera impresión de como se comportaria
+el algoritmo kNN. Dado el problema de la dimensionalidad del algoritmo kNN , se
+considero hacer una reducción de las dimensóon de los datos para hacer la
+clasificación de los datos con un menor costo, siendo una algoritmo robusto y
+con la menor perdidad de información durante la reducción. Dadas estas
+condiciones, usaremos PCA para poder hacer la reducción de las dimensiones.  
 
 
 \section{Entrenamiento}
 
 \subsection{Algoritmo Knn}
-Comenzamos buscando la norma de la distancia euclídea entre la imagen a reconocer y cada uno de los vectores de la base de entrenamiento. Para cada norma $d_{i}=||X-Y_{i}||$, donde X es la imagen a reconocer e $Y_{i}$ es el $i$-esimo vector de la base de entrenamiento, creamos un pair que tiene la norma junto con el digito manuscrito asociado a $Y_{i}$ (la variable i toma los valores 0 hasta 41,999).\par
-\indent Los primeros k pairs son insertadas en un max heap independientemente del tamano de la norma que tengan. Para el pair k+1 vemos si el tamano de su norma es menor al tamano de la norma en el pair de la cabeza del max heap. Si esto sucede borramos el elemento en la cabeza del heap e inseramos la el pair con la norma $d_{k+1}$, de lo contrario el heap no se cambia e iteramos sobre $i$ hasta llegar a $i$=41,999. \par
-\indent Con el max heap de las k normas mas pequenas construido el siguiente paso es encontrar el digito manuscrito mas repetido entre todos los pairs del heap. De aquí se obtendrá la clase que tenga una mayor cantidad de vectores dentro de los k más cercanos.\par
+Comenzamos buscando la norma de la distancia euclídea entre la imagen a reconocer y cada uno de los vectores de la base de entrenamiento. Para cada norma $d_{i}=||X-Y_{i}||$, donde X es la imagen a reconocer e $Y_{i}$ es el $i$-esimo vector de la base de entrenamiento, creamos un tupla que tiene la norma junto con el digito manuscrito asociado a $Y_{i}$.\par
+\indent Los primeros k tuplas son insertadas en un max heap independientemente del tamaño de la norma que tengan. Para el tupla k+1 vemos si el tamaño de su norma es menor al tamaño de la norma en el tupla de la cabeza del max heap. Si esto sucede borramos el elemento en la cabeza del heap e insertamos el tupla con la norma $d_{k+1}$, de lo contrario el heap no se cambia e iteramos sobre $i$ hasta haber utilizado todas las imágenes del dataset de entrenamiento. \par
+\indent Con el max heap de las $k$ normas mas pequeñas construido el siguiente paso es encontrar el dígito manuscrito mas repetido entre todos los tupla del heap. De aquí se obtendrá la clase que tenga una mayor cantidad de vectores dentro de los k más cercanos.\par
 \indent En el caso de encontrar clases con la misma cantidad de vectores se compararán los elementos de cada una de ellas en orden de cercanía, para obtener así la clase que tenga al elemento más cercano.\par
 %Dada una metrica definida para los datos, el algoritmo toma un conjunto
 %elementos conformado por los k vecinos mas cercanos segun la metrica y toma la clase moda del conjunto como la clase del elemento. 
 
-\subsection{normalizacion de los datos}
-Los datos seran centrados en 0, para poder tener una mejor representacion de los
-datos y poner trabajar con los datos concervando la varianza y poder analizar
+\subsection{Normalización de los datos}
+Los datos seran centrados en 0, para poder tener una mejor representación de los
+datos y poder trabajar con los datos concervando la varianza, para luego poder analizar
 los datos con PCA
 
 \subsection{Obtención de la Matriz de Covarianza}
 Primero se vectorizan los datos definiendo una matriz X, entonces la matriz de
 covarianza queda definida como $M_{x}$ = $\frac{1}{n-1}$ $X^{t}$ X, con lo cual
-M es simetrica y se puede formar una BON(Base Ortonormal) de autovectores. Esto sirven
+M es simétrica y se puede formar una BON(Base Ortonormal) de autovectores. Esto sirven
 para que el algoritmo PCA pueda trabajar con los datos conservando la misma varianza,y asi hallar los autovectores que al proyectar un dato sobre
 ellos concerven la mayor varianza.
 
 \subsection{Algoritmo PCA}
-Para el algoritmo PCA se utilizaran el metodo de las potencias y deflacion. 
+Para el algoritmo PCA se utilizaran el método de las potencias y deflación. 
 \begin{enumerate}
-\item El metodo de las potencias usa convergencia de las potencias de la matriz por un vector random al autovector y  autovalor(mayor en modulo a los demas autovalores).
-\item Dado que la matriz de covarianza es simetrica, entonces los autovectores son ortogonales de a pares. Al aplicar deflacion, se toma el autovector asociado al mayor autovalor y se le asocia el 0 como autovalor, preservando los demas autovectores con sus respectivos autovalores, con lo cual, se puede aplicar nuevamente el metodo de las potencias hasta obtener la cantidad de autovectores deseado para la proyeccion al espacio que maximiza la varianza.
+\item El método de las potencias usa convergencia de las potencias de la matriz por un vector random al autovector y  autovalor(mayor en módulo a los demas autovalores).
+\item Dado que la matriz de covarianza es simétrica, entonces los autovectores son ortogonales de a pares. Al aplicar deflación, se toma el autovector asociado al mayor autovalor y se le asocia el 0 como autovalor, preservando los demas autovectores con sus respectivos autovalores, con lo cual, se puede aplicar nuevamente el método de las potencias hasta obtener la cantidad de autovectores deseado para la proyección al espacio que maximiza la varianza.
 
 \end{enumerate}
 %Para el algoritmo PCA se utilizaran dos algoritmos: 
@@ -57,9 +57,9 @@ Para el algoritmo PCA se utilizaran el metodo de las potencias y deflacion.
 \subsection{Utilización de k-NN con PCA}
 
 Debemos vectorizar todo el dataset y cada uno de los
-datos a los que se les va aplicar knn, luego con los alpha autovectores
+datos a los que se les va aplicar kNN, luego con los alpha autovectores
 obtenidos durante el entrenamiento, se aplica el cambio de base y se utiliza la
-metrica definida para esos datos y se hace la clasificacion. De aquí sabremos cuantos vectores pertenecen a cada clase y así saber con cual clase se encuentra mas similitud. En el caso de encontrar la misma cantidad de vectores de clases diferentes se buscara una forma de desambiguar. Nosotros en particular decidimos tomar la clase del vector mas cercano de las clases empatadas.
+métrica definida para esos datos y se hace la clasificación. De aquí sabremos cuantos vectores pertenecen a cada clase y así saber con cual clase se encuentra mas similitud. En el caso de encontrar la misma cantidad de vectores de clases diferentes se buscara una forma de desambiguar. Nosotros en particular decidimos tomar la clase del vector mas cercano de las clases empatadas.
 
 Si todo esto se logro hacer correctamente obtendremos una predicción correcta
 del dígito que se encuentra en la imágen
