@@ -33,9 +33,9 @@ para que el algoritmo PCA pueda trabajar con los datos conservando la misma vari
 ellos concerven la mayor varianza.
 
 \subsection{Algoritmo PCA}
-\begin{enumerate}
 Para el algoritmo PCA se utilizaran el metodo de las potencias y deflacion. 
-\item usa convergencia de las potencias de la matriz por un vector random al autovector y  autovalor(mayor en modulo a los demas autovalores)
+\begin{enumerate}
+\item El metodo de las potencias usa convergencia de las potencias de la matriz por un vector random al autovector y  autovalor(mayor en modulo a los demas autovalores).
 \item Dado que la matriz de covarianza es simetrica, entonces los autovectores son ortogonales de a pares. Al aplicar deflacion, se toma el autovector asociado al mayor autovalor y se le asocia el 0 como autovalor, preservando los demas autovectores con sus respectivos autovalores, con lo cual, se puede aplicar nuevamente el metodo de las potencias hasta obtener la cantidad de autovectores deseado para la proyeccion al espacio que maximiza la varianza.
 
 \end{enumerate}
