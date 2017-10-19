@@ -35,7 +35,7 @@ ellos concerven la mayor varianza.
 \subsection{Algoritmo PCA}
 Para el algoritmo PCA se utilizaran el método de las potencias y deflación. 
 \begin{enumerate}
-\item El método de las potencias usa convergencia de las potencias de la matriz por un vector random al autovector y  autovalor(mayor en módulo a los demas autovalores).
+\item El método de la potencia lo utilizamos para obtener el autovector con el mayor autovalor asociado ---comparandolo al resto de los autovalores en módulo. La diferencia al método visto en el $libro^{1}$, es que como no tenemos tiempo infinito para correr tomamos el criterio de deje de iterar al momento que el autovalor obtenido en $t_{i}$ tenga una diferencia menor a un $\epsilon$ con respecto al autovalor obtenido en $t_{i-1}$, con $\epsilon$ muy pequeño.
 \item Dado que la matriz de covarianza es simétrica, entonces los autovectores son ortogonales de a pares. Al aplicar deflación, se toma el autovector asociado al mayor autovalor y se le asocia el 0 como autovalor, preservando los demas autovectores con sus respectivos autovalores, con lo cual, se puede aplicar nuevamente el método de las potencias hasta obtener la cantidad de autovectores deseado para la proyección al espacio que maximiza la varianza.
 
 \end{enumerate}
