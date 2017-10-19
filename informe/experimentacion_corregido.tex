@@ -144,6 +144,32 @@ En las figuras \ref{fig:distintos_tamanos_accuracy} y \ref{fig:distintos_tamanos
 
 En esta parte se hace un análisis del tiempo de ejecución del programa en función de los parámetros k-KNN y alpha-PCA.
 
+\subsection{Hipótesis}
+
 Con respecto a k-KNN se espera que el tiempo de ejecución tenga una relación logarítmica con respecto a su valor. Esto se debe a que en nuestra implementación los vecinos más cercanos se guardan y se actualizan en una estructura de heap, cuyo costo de inserción y borrado es logarítmico en función de la cantidad de elementos que almacena ---en este caso, a lo sumo $k$.
 
 En cuanto a alpha-PCA la hipótesis es que afectará linealmente el tiempo de ejecución. En primer lugar, este parámetro determina la cantidad de veces que se repetirán el método de la potencia y la deflación. Por otra parte, $\alpha$ es la cantidad de filas que tendrá la matriz de cambio de base, por lo que afecta en forma lineal las operaciones de multiplicación matricial. Finalmente, a la hora de hacer KNN, $\alpha$ es la cantidad de componentes que se deberá considerar para obtener la distancia entre dos imágenes, por lo cual la complejidad de este algoritmo también es lineal en función de dicho parámetro.
+
+\subsection{Resultados}
+
+
+\section{Con PCA vs. sin PCA}
+
+En esta sección se compara el accuracy del reconocimiento con y sin PCA para un rango de valores de k-KNN. Los valores de alpha-PCA comparados son los que se observaron como óptimos en los experimentos anteriores: 3, 4, 5 y 6.
+
+Como se puede ver en la figura \ref{fig:cv1_sin_pca_accuracy}, el reconocimiento sin PCA presenta el mismo comportamiento con respecto a k-KNN: el accuracy crece para los valores más pequeños pero luego se mantiene en decrecimiento para valores más grandes.
+
+Se puede observar también que los valores óptimos de k-KNN se encuentran entre 1 y 10, al igual que con el uso de PCA. Es por esta razón que la comparación entre los dos métodos se realiza para valores de k-KNN dentro de este rango.
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{graficos/cv1_sin_pca_accuracy.png}
+	\caption{Accuracy sin PCA en función de k-KNN agrupado por k-KFold}
+	\label{fig:cv1_sin_pca_accuracy}
+\end{figure}
+
+\subsection{Hipótesis}
+
+Se espera que el reconocimiento sin PCA tendrá un mejor accuracy que con el uso de PCA para cualquier $\alpha$ porque con el primer método se está utilizando toda la información disponible para determinar la cercanía de las imágenes en el algoritmo de KNN.
+
+\subsection{Resultados}
