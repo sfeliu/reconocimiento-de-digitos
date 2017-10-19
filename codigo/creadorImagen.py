@@ -37,7 +37,7 @@ def get_F1_score(precision, recall):
 
 
 def levantar_info(filename, parametros):
-    file = 'cv/' + filename
+    file = 'cv_K_distinto/' + filename
     contenido = []
     for line in open(file):
         contenido.append(line.strip())
@@ -71,7 +71,7 @@ def levantar_info(filename, parametros):
 
 def levantar_diccionario():
     data_total = {}
-    for line in open('metricas.csv', 'r'):
+    for line in open('metricas_K.csv', 'r'):
         if 'Fold' not in line:
             info_temporal = line.strip().split(',')
             number_f = info_temporal[0]
@@ -97,7 +97,7 @@ def levantar_diccionario():
     return data_total
 
 def guardar_diccionario(data):
-    with open('metricas.csv', 'w') as f:
+    with open('metricas_K.csv', 'w') as f:
         f.write('Fold,Alpha,kNN,Clase,Accuracy,Presicion,Recall,F1_score\n')
         for fold in sorted(data.keys()):
             for alpha in sorted(data[fold].keys()):
