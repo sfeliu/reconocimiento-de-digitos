@@ -13,8 +13,11 @@ condiciones, usaremos PCA para poder hacer la reduccion de las dimensiones.
 \section{Entrenamiento}
 
 \subsection{Algoritmo Knn}
-Dada una metrica definida para los datos, el algoritmo toma un conjunto
-elementos conformado por los k vecinos mas cercanos segun la metrica y toma la clase moda del conjunto como la clase del elemento. 
+Para obtener la clase de las imágenes utilizaremos k-NN.
+Comenzaremos buscando la norma de la distancia euclídea entre la vectorización de la imagen a reconocer y cada uno de los vectores de la base de entrenamiento.
+Una vez obtenida todas las distancias se tomarán los k vectores más cercanos. De aquí se obtendrá la clase que tenga una mayor cantidad de vectores dentro de estos k más cercanos. En el caso de encontrar clases con la misma cantidad de vectores se compararán los elementos de cada una de ellas en orden de cercanía, para obtener así la clase que tenga al elemento más cercano.
+%Dada una metrica definida para los datos, el algoritmo toma un conjunto
+%elementos conformado por los k vecinos mas cercanos segun la metrica y toma la clase moda del conjunto como la clase del elemento. 
 
 \subsection{normalizacion de los datos}
 Los datos seran centrados en 0, para poder tener una mejor representacion de los
