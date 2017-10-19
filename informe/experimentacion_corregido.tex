@@ -89,7 +89,7 @@ El algoritmo de PCA obtiene de la matriz de covarianza los autovectores necesari
     \label{fig:cv1_accuracy_zoom}
 \end{figure}
 
-\begin{figure}[h]
+\begin{figure}[H]
     \centering
     \includegraphics[width=\textwidth]{graficos/cv1_precision_zoom.png}
     \caption{Precision en función de alpha-PCA para cada k-KNN}
@@ -108,6 +108,27 @@ Con esta primera búsqueda se puede concluir entonces que los valores óptimos d
 \subsection{Segunda búsqueda}
 
 En esta segunda búsqueda se realizaron mediciones para alpha-PCA $20 \leq \alpha \leq 70$ y k-KNN $2 \leq \alpha \leq 8$.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=\textwidth]{graficos/cv2_accuracy.png}
+    \caption{Accuracy en función de alpha-PCA para cada k-KNN}
+    \label{fig:cv2_accuracy}
+\end{figure}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=\textwidth]{graficos/cv2_precision.png}
+    \caption{Precision en función de alpha-PCA para cada k-KNN}
+    \label{fig:cv2_precision}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{graficos/cv2_recall.png}
+    \caption{Recall en función de alpha-PCA para cada k-KNN}
+    \label{fig:cv2_recall}
+\end{figure}
 
 \section{Tamaño de la base de entrenamiento}
 
