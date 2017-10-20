@@ -173,6 +173,24 @@ En cuanto a alpha-PCA la hipótesis es que afectará linealmente el tiempo de ej
 
 \subsection{Resultados}
 
+Para k-KNN se observa en la figura \ref{fig:tiempo_knn} que, salvo por ciertas variaciones atribuibles a errores de medición, el tiempo de ejecución parece tener una tendencia constante con respecto a este parámetro. Se cree que esto se debe a que K-KNN constituye una porción mínima del costo temporal del programa en comparación a las costosas operaciones matriciales y de comparación realizadas en otras partes. Este parámetro afecta sólo el tiempo de ejecución cuando es necesario insertar un elemento en el heap usado en KNN. Luego sería necesario observar un rango más grande de valores de k-KNN para poder ver el crecimiento logarítmico.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{graficos/tiempo_knn.png}
+    \caption{Tiempo (seg) en función de k-KNN agrupado por alpha-PCA}
+    \label{fig:tiempo_knn}
+\end{figure}
+
+En cuanto a alpha-PCA se puede observar claramente en la figura \ref{fig:tiempo_pca} que el tiempo es lineal en función de este parámetro para todos los valores de k-KNN.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{graficos/tiempo_pca.png}
+    \caption{Tiempo (seg) en función de alpha-PCA agrupado por k-KNN}
+    \label{fig:tiempo_pca}
+\end{figure}
+
 
 \section{Con PCA vs. sin PCA}
 
@@ -195,6 +213,14 @@ Se espera que el reconocimiento sin PCA tendrá un mejor accuracy que con el uso
 
 \subsection{Resultados}
 
+Los resultados obtenidos indican que la hipótesis es incorrecta. Se puede ver en la figura \ref{fig:cv_vs} que el accuracy del reconocimiento sin PCA es de los más bajos, comparable únicamente con el peor de los alpha-PCA evaluados.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{graficos/cv_vs.png}
+    \caption{Accuracy en función de k-KNN para distintos alpha-PCA y sin PCA}
+    \label{fig:cv_vs}
+\end{figure}
 
 
 \section{Distintos K-Fold}
