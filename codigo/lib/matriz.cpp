@@ -4,7 +4,8 @@
 
 Matriz::Matriz() : _matriz(NULL), _fils(0), _cols(0), _mask() {}
 
-Matriz::Matriz(const Matriz &A) : _fils(A.filas()), _cols(A.columnas()) {
+Matriz::Matriz(const Matriz &A) : _matriz(NULL), _fils(A.filas()), _cols(A.columnas()) {
+    if (A._matriz == NULL) return;
     _crear_matriz();
     for (unsigned int i = 0; i < _fils; ++i) {
         for (unsigned int j = 0; j < _cols; ++j)
@@ -21,6 +22,7 @@ Matriz::Matriz(const unsigned int f, const unsigned int c) : _fils(f), _cols(c) 
 }
 
 Matriz::~Matriz() {
+    if (_matriz == NULL) return;
     for (unsigned int i = 0; i < _fils; ++i)
         delete[] _matriz[i];
     delete[] _matriz;
